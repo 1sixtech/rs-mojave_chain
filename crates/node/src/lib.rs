@@ -1,15 +1,14 @@
 pub mod backend;
 pub mod service;
 
-use backend::{error::BackendError, Backend};
+use backend::Backend;
 use clap::Parser;
 use drip_chain_abci::{
-    client::{AbciClient, AbciClientError},
-    server::{AbciServer, AbciServerError, AbciServerHandle},
+    client::AbciClient,
+    server::{AbciServer, AbciServerHandle},
 };
 use drip_chain_rpc::{
     config::RpcConfig,
-    error::RpcServerError,
     server::{RpcServer, RpcServerHandle},
 };
 use drip_chain_types::primitives::{utils::Unit, U256};
@@ -21,6 +20,9 @@ use std::{
 };
 
 mod args;
+mod error;
+
+use crate::error::DRiPNodeError;
 
 pub struct DRiPNode;
 
@@ -89,61 +91,5 @@ impl Future for DRiPNodeHandle {
         }
 
         Poll::Pending
-    }
-}
-
-#[derive(Debug)]
-pub enum DRiPNodeError {
-    AbciServer(AbciServerError),
-    AbciClient(AbciClientError),
-    Rpc(RpcServerError),
-    Backend(BackendError),
-    MissingHomeDirectory,
-    InvalidRpcAddress(String),
-    Evm(String),
-}
-
-impl std::fmt::Display for DRiPNodeError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::AbciServer(value) => write!(f, "ABCI server error: {value}"),
-            Self::AbciClient(value) => write!(f, "ABCI client error: {value}"),
-            Self::Rpc(value) => write!(f, "RPC server error: {value}"),
-            Self::Backend(value) => write!(f, "Backend error: {value}"),
-            Self::MissingHomeDirectory => write!(f, "Home directory CLI argument missing"),
-            Self::InvalidRpcAddress(value) => {
-                write!(
-                    f,
-                    "Invalid RPC address returned from CometBFT config: {value}"
-                )
-            }
-            Self::Evm(value) => write!(f, "EVM client error: {value}"),
-        }
-    }
-}
-
-impl std::error::Error for DRiPNodeError {}
-
-impl From<AbciServerError> for DRiPNodeError {
-    fn from(value: AbciServerError) -> Self {
-        Self::AbciServer(value)
-    }
-}
-
-impl From<AbciClientError> for DRiPNodeError {
-    fn from(value: AbciClientError) -> Self {
-        Self::AbciClient(value)
-    }
-}
-
-impl From<RpcServerError> for DRiPNodeError {
-    fn from(value: RpcServerError) -> Self {
-        Self::Rpc(value)
-    }
-}
-
-impl From<BackendError> for DRiPNodeError {
-    fn from(value: BackendError) -> Self {
-        Self::Backend(value)
     }
 }

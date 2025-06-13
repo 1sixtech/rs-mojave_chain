@@ -4,8 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-anvil-core = { git = "https://github.com/foundry-rs/foundry", rev = "d484a00089d789a19e2e43e63bbb3f1500eb2cbf" }
-anvil-rpc = { git = "https://github.com/foundry-rs/foundry", rev = "d484a00089d789a19e2e43e63bbb3f1500eb2cbf" }
 alloy = { version = "0.12", features = [
   "consensus",
   "eips",
@@ -16,4 +14,6 @@ alloy = { version = "0.12", features = [
   "rpc-types",
   "serde",
 ] }
+anvil-core = { git = "https://github.com/foundry-rs/foundry", rev = "d484a00089d789a19e2e43e63bbb3f1500eb2cbf" }
+anvil-rpc = { git = "https://github.com/foundry-rs/foundry", rev = "d484a00089d789a19e2e43e63bbb3f1500eb2cbf" }
 serde = { workspace = true, features = ["derive"] }

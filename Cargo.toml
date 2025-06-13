@@ -9,16 +9,21 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-futures = "0.3"
-serde = { version = "1", default-features = false }
-tokio = { version = "1", default-features = false }
-tokio-stream = "0.1"
-toml = "0.8"
-tracing = "0.1"
-tracing-subscriber = "0.3"
-trait-variant = "0.1"
-
+# our own crates
 drip-chain-abci = { path = "crates/abci" }
 drip-chain-node = { path = "crates/node" }
 drip-chain-rpc = { path = "crates/rpc" }
 drip-chain-types = { path = "crates/types" }
+
+# async runtime and middleware
+futures = "0.3"
+serde = { version = "1", default-features = false }
+tokio = { version = "1", default-features = false }
+tokio-stream = "0.1"
+
+# misc
+tracing = "0.1"
+tracing-subscriber = "0.3"
+trait-variant = "0.1"
+toml = "0.8"
+thiserror = "2.0"

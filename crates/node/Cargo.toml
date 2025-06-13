@@ -9,14 +9,17 @@ path = "src/bin/main.rs"
 
 [dependencies]
 anvil = { git = "https://github.com/foundry-rs/foundry", rev = "d484a00089d789a19e2e43e63bbb3f1500eb2cbf" }
-futures = { workspace = true }
+clap = { version = "4.5", features = ["derive"] }
 drip-chain-abci = { workspace = true }
 drip-chain-rpc = { workspace = true }
 drip-chain-types = { workspace = true }
+futures = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = "1"
 tokio = { workspace = true, features = ["full"] }
 tokio-stream = "0.1"
 tracing = "0.1"
 tracing-subscriber = "0.3"
-clap = { version = "4.5", features = ["derive"] }
+
+# misc 
+thiserror.workspace = true

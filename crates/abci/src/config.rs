@@ -300,27 +300,13 @@ where
         .map_err(|e| D::Error::custom(format!("{e}")))
 }
 
+#[derive(thiserror::Error, Debug)]
 pub enum CometBftConfigError {
+    #[error("Failed to read config file: {0}")]
     Read(std::io::Error),
+    #[error("Failed to deserialize config: {0}")]
     Deserialize(toml::de::Error),
 }
-
-impl std::fmt::Debug for CometBftConfigError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Read(error) => write!(f, "{error}"),
-            Self::Deserialize(error) => write!(f, "{error}"),
-        }
-    }
-}
-
-impl std::fmt::Display for CometBftConfigError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-
-impl std::error::Error for CometBftConfigError {}
 
 #[cfg(test)]
 mod tests {
