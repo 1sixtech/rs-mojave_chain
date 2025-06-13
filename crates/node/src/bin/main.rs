@@ -2,6 +2,12 @@ use mohave_chain_node::MohaveChainNode;
 
 #[tokio::main]
 async fn main() {
-    let handle = MohaveChainNode::init().await.unwrap();
-    handle.await;
+    match MohaveChainNode::init().await {
+        Ok(handle) => {
+            handle.await;
+        }
+        Err(error) => {
+            tracing::error!(error = %error, "Error starting DRiP node");
+        }
+    }
 }

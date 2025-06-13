@@ -10,7 +10,6 @@ use mohave_chain_json_rpc::{
 };
 use mohave_chain_types::primitives::{utils::Unit, U256};
 use std::{
-    env,
     future::Future,
     pin::Pin,
     task::{Context, Poll},
@@ -25,9 +24,11 @@ impl MohaveChainNode {
         let home_directory = arguments.first().expect("Provide the home directory");
 
         // Initialize anvil backend.
-        let mut node_config = anvil::NodeConfig::default();
-        node_config.genesis_balance = Unit::ETHER.wei().saturating_mul(U256::from(10000u64));
-        let (evm_client, evm_client_handle) = anvil::try_spawn(node_config).await.unwrap();
+        let balance = Unit::ETHER.wei().saturating_mul(U256::from(10000u64));
+        let node_config = anvil::NodeConfig::default().with_genesis_balance(balance);
+        let (evm_client, evm_client_handle) = anvil::try_spawn(node_config)
+            .await
+            .map_err(|e| DRiPNodeError::Evm(e.to_string()))?;
 
         // Initialize the backend.
         let backend = Backend::init(evm_client);
@@ -38,7 +39,7 @@ impl MohaveChainNode {
 
         let handle = MohaveChainNodeHandle {
             rpc_server: rpc_server_handle,
-            evm_client_handle: evm_client_handle,
+            evm_client_handle,
         };
         Ok(handle)
     }
@@ -68,11 +69,27 @@ impl Future for MohaveChainNodeHandle {
 pub enum MohaveChainNodeError {
     Rpc(RpcServerError),
     Backend(BackendError),
+    MissingHomeDirectory,
+    InvalidRpcAddress(String),
+    Evm(String),
 }
 
 impl std::fmt::Display for MohaveChainNodeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        match self {
+            Self::AbciServer(value) => write!(f, "ABCI server error: {value}"),
+            Self::AbciClient(value) => write!(f, "ABCI client error: {value}"),
+            Self::Rpc(value) => write!(f, "RPC server error: {value}"),
+            Self::Backend(value) => write!(f, "Backend error: {value}"),
+            Self::MissingHomeDirectory => write!(f, "Home directory CLI argument missing"),
+            Self::InvalidRpcAddress(value) => {
+                write!(
+                    f,
+                    "Invalid RPC address returned from CometBFT config: {value}"
+                )
+            }
+            Self::Evm(value) => write!(f, "EVM client error: {value}"),
+        }
     }
 }
 

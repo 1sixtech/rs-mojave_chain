@@ -31,7 +31,7 @@ impl EthApi for Backend {
     /// Executes a new message call immediately without creating a transaction on the block chain.
     async fn call(&self, parameter: EthCall) -> Result<Bytes, Self::Error> {
         self.evm_client()
-            .call(parameter.request.into(), parameter.block_number, None)
+            .call(parameter.request, parameter.block_number, None)
             .await
             .map_err(BackendError::EthApi)
     }

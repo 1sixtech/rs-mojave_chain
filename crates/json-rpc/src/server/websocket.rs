@@ -46,7 +46,7 @@ impl<T: EthPubSubApi> WebsocketServer<T> {
             SubscriptionKind::NewPendingTransactions => {
                 Self::new_pending_transactions(pending, backend.clone()).await
             }
-            SubscriptionKind::Syncing => return Err(SubscriptionError::Unsupported.into()),
+            SubscriptionKind::Syncing => Err(SubscriptionError::Unsupported.into()),
         }
     }
 

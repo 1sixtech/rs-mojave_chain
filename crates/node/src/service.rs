@@ -34,7 +34,7 @@ impl PubSubService {
         self.new_heads.subscribe().into()
     }
 
-    pub fn subscribe_logs(&self, filter: Option<Box<Filter>>) -> LogsStream {
+    pub fn subscribe_logs(&self, _filter: Option<Box<Filter>>) -> LogsStream {
         self.logs.subscribe().into()
     }
 
