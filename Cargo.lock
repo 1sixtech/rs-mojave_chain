@@ -2428,6 +2428,7 @@ name = "drip-chain-node"
 version = "0.1.0"
 dependencies = [
  "anvil",
+ "clap",
  "drip-chain-abci",
  "drip-chain-rpc",
  "drip-chain-types",
@@ -2453,6 +2454,7 @@ dependencies = [
  "tokio-stream",
  "tower 0.4.13",
  "tower-http",
+ "tracing",
  "trait-variant",
 ]
 

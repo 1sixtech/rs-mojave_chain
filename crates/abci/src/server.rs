@@ -25,6 +25,7 @@ impl<T> AbciServer<T>
 where
     T: AbciApi,
 {
+    #[allow(clippy::result_large_err)]
     pub fn init_config(home_directory: impl AsRef<str>) -> Result<CometBftConfig, AbciServerError> {
         let mut cometbft_node = BlockingCommand::new("cometbft");
         cometbft_node.args(["init", "--home", home_directory.as_ref()]);
@@ -66,6 +67,7 @@ where
         })
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn init(
         home_directory: impl AsRef<str>,
         config: CometBftConfig,

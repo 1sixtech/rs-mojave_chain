@@ -7,13 +7,13 @@ edition = "2024"
 anvil-core = { git = "https://github.com/foundry-rs/foundry", rev = "d484a00089d789a19e2e43e63bbb3f1500eb2cbf" }
 anvil-rpc = { git = "https://github.com/foundry-rs/foundry", rev = "d484a00089d789a19e2e43e63bbb3f1500eb2cbf" }
 alloy = { version = "0.12", features = [
-	"consensus",
-	"eips",
-	"json-rpc",
-	"k256",
-	"network",
-	"rlp",
-	"rpc-types",
-	"serde",
+  "consensus",
+  "eips",
+  "json-rpc",
+  "k256",
+  "network",
+  "rlp",
+  "rpc-types",
+  "serde",
 ] }
 serde = { workspace = true, features = ["derive"] }

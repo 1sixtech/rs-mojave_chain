@@ -141,6 +141,7 @@ impl AbciService {
     pub fn init() -> Self {
         let (sender, mut receiver) =
             mpsc::unbounded_channel::<(Backend, AbciRequest, oneshot::Sender<AbciResponse>)>();
+
         tokio::spawn(async move {
             loop {
                 if let Some((backend, request, sender)) = receiver.recv().await {
