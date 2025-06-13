@@ -272,7 +272,10 @@ where
     }
 
     for item in string.split(',') {
-        result.push(item.parse().map_err(|e| D::Error::custom(format!("{e}")))?);
+        result.push(
+            item.parse()
+                .map_err(|e| D::Error::custom(format_args!("{e}")))?,
+        );
     }
 
     Ok(result)
@@ -305,15 +308,15 @@ pub enum CometBftConfigError {
 impl std::fmt::Debug for CometBftConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Read(error) => write!(f, "{}", error),
-            Self::Deserialize(error) => write!(f, "{}", error),
+            Self::Read(error) => write!(f, "{error}"),
+            Self::Deserialize(error) => write!(f, "{error}"),
         }
     }
 }
 
 impl std::fmt::Display for CometBftConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 

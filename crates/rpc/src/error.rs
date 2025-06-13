@@ -14,8 +14,8 @@ impl From<jsonrpsee::core::RegisterMethodError> for RpcServerError {
 impl std::fmt::Debug for RpcServerError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Build(error) => write!(f, "Failed to build RPC server: {}", error),
-            Self::RegisterMethod(error) => write!(f, "Failed to register RPC method: {}", error),
+            Self::Build(error) => write!(f, "Failed to build RPC server: {error}"),
+            Self::RegisterMethod(error) => write!(f, "Failed to register RPC method: {error}"),
             Self::RpcServerStopped => write!(f, "RPC server stopped"),
             Self::WebsocketServerStopped => write!(f, "Websocket server stopped"),
         }
@@ -24,7 +24,7 @@ impl std::fmt::Debug for RpcServerError {
 
 impl std::fmt::Display for RpcServerError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 

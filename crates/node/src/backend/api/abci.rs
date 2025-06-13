@@ -65,13 +65,11 @@ impl Backend {
         self.evm_client().mine_one().await;
         // # Safety
         // Block is guaranteed to exist as long as mine_one() succeeds.
-        let block = self
+        if let Ok(Some(block)) = self
             .evm_client()
             .block_by_number_full(drip_chain_types::rpc::BlockNumberOrTag::Latest)
             .await
-            .unwrap();
-
-        if let Some(block) = block {
+        {
             let full_block = block.into_inner();
             let new_head = full_block.header;
             self.pubsub_service().publish_new_head(new_head);

@@ -38,7 +38,7 @@ impl PubSubService {
         self.new_heads.subscribe().into()
     }
 
-    pub fn subscribe_logs(&self, filter: Option<Box<Filter>>) -> LogsStream {
+    pub fn subscribe_logs(&self, _filter: Option<Box<Filter>>) -> LogsStream {
         self.logs.subscribe().into()
     }
 
@@ -147,15 +147,15 @@ impl AbciService {
                     match request {
                         AbciRequest::CheckTx(request) => {
                             let response = backend.check_transaction(request).await;
-                            sender.send(response.into()).unwrap();
+                            let _ = sender.send(response.into());
                         }
                         AbciRequest::FinalizeBlock(request) => {
                             let response = backend.do_finalize_block(request).await;
-                            sender.send(response.into()).unwrap();
+                            let _ = sender.send(response.into());
                         }
                         AbciRequest::Commit => {
                             let response = backend.do_commit().await;
-                            sender.send(response.into()).unwrap();
+                            let _ = sender.send(response.into());
                         }
                     }
                 }

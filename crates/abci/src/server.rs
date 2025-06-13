@@ -55,16 +55,15 @@ where
             proxy_app_address.as_ref(),
         ]);
 
-        let handle = tokio::spawn(async move {
+        tokio::spawn(async move {
             match cometbft_node.kill_on_drop(true).spawn() {
                 Ok(mut handle) => match handle.wait().await {
-                    Ok(status) => return AbciServerError::CometBft(status.to_string()),
-                    Err(error) => return AbciServerError::CometBft(error.to_string()),
+                    Ok(status) => AbciServerError::CometBft(status.to_string()),
+                    Err(error) => AbciServerError::CometBft(error.to_string()),
                 },
-                Err(error) => return AbciServerError::CometBft(error.to_string()),
+                Err(error) => AbciServerError::CometBft(error.to_string()),
             }
-        });
-        handle
+        })
     }
 
     pub fn init(
@@ -82,7 +81,7 @@ where
                 peer_id: _,
                 host,
                 port,
-            } => format!("{}:{}", host, port),
+            } => format!("{host}:{port}"),
             Address::Unix { path: _ } => {
                 return Err(AbciServerError::CometBft(
                     "Unexpected address type".to_owned(),
@@ -94,8 +93,8 @@ where
             .bind(&address, backend)
             .map_err(AbciServerError::Build)?;
         let server_handle = thread::spawn(move || match server.listen() {
-            Ok(()) => return AbciServerError::Server(None),
-            Err(error) => return AbciServerError::Server(Some(error)),
+            Ok(()) => AbciServerError::Server(None),
+            Err(error) => AbciServerError::Server(Some(error)),
         });
 
         let cometbft_node_handle = Self::start_cometbft_node(home_directory, address);
@@ -160,17 +159,17 @@ pub enum AbciServerError {
 impl std::fmt::Debug for AbciServerError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Config(error) => write!(f, "CometBFT config error: {}", error),
+            Self::Config(error) => write!(f, "CometBFT config error: {error}"),
             Self::TimeoutCommitIsZero => write!(f, "Set timeout_commit to value other than zero"),
-            Self::BufferSize(error) => write!(f, "CometBFT buffer size error: {}", error),
-            Self::Build(error) => write!(f, "Failed to build ABCI server: {}", error),
+            Self::BufferSize(error) => write!(f, "CometBFT buffer size error: {error}"),
+            Self::Build(error) => write!(f, "Failed to build ABCI server: {error}"),
             Self::Server(error) => match error {
-                Some(error) => write!(f, "ABCI server stopped with an error: {}", error),
+                Some(error) => write!(f, "ABCI server stopped with an error: {error}"),
                 None => write!(f, "ABCI server stopped"),
             },
-            Self::CometBft(error) => write!(f, "CometBFT node stopped with an error: {}", error),
+            Self::CometBft(error) => write!(f, "CometBFT node stopped with an error: {error}"),
             Self::JoinServer => write!(f, "Failed to join ABCI server"),
-            Self::JoinCometBftNode(error) => write!(f, "Failed to join CometBFT node: {}", error),
+            Self::JoinCometBftNode(error) => write!(f, "Failed to join CometBFT node: {error}"),
             Self::MissingServerHandle => write!(f, "ABCI server handle returned None"),
         }
     }
@@ -178,7 +177,7 @@ impl std::fmt::Debug for AbciServerError {
 
 impl std::fmt::Display for AbciServerError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        write!(f, "{self:?}")
     }
 }
 
