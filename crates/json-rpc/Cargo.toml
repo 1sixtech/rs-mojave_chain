@@ -12,8 +12,10 @@ hyper = "1.6.0"
 serde = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
-tokio-stream = { workspace = true }
+tokio-stream.workspace = true
 tower = "0.4"
 tower-http = { version = "0.6", features = ["cors"] }
-trait-variant = { workspace = true }
-tracing = { workspace = true }
+
+# misc
+tracing.workspace = true
+trait-variant.workspace = true

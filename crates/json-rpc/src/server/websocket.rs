@@ -137,16 +137,10 @@ impl<T: EthPubSubApi> WebsocketServer<T> {
     }
 }
 
+#[derive(Debug, thiserror::Error)]
 pub enum SubscriptionError {
+    #[error("Unsupported subscription kind")]
     Unsupported,
+    #[error("Invalid parameter")]
     InvalidParameter,
-}
-
-impl std::fmt::Display for SubscriptionError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Unsupported => write!(f, "Unsupported subscription kind"),
-            Self::InvalidParameter => write!(f, "Invalid parameter"),
-        }
-    }
 }

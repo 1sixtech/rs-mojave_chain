@@ -7,3 +7,5 @@ edition = "2024"
 alloy = { version = "0.12", features = ["full"] }
 futures = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
+
+tracing.workspace = true

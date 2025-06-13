@@ -2389,12 +2389,124 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1aaf95b3e5c8f23aa320147307562d361db0ae0d51242340f558153b4eb2439b"
 
 [[package]]
+<<<<<<< HEAD
+||||||| parent of 656087a (feat: use thiserror)
+name = "drip-chain-abci"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "futures",
+ "prost",
+ "serde",
+ "tendermint",
+ "tendermint-abci",
+ "tendermint-config",
+ "tendermint-proto",
+ "tendermint-rpc",
+ "tokio",
+ "toml",
+]
+
+[[package]]
+name = "drip-chain-node"
+version = "0.1.0"
+dependencies = [
+ "anvil",
+ "clap",
+ "drip-chain-abci",
+ "drip-chain-rpc",
+ "drip-chain-types",
+ "futures",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-stream",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "drip-chain-rpc"
+version = "0.1.0"
+dependencies = [
+ "drip-chain-types",
+ "futures",
+ "hyper 1.6.0",
+ "jsonrpsee",
+ "serde",
+ "tokio",
+ "tokio-stream",
+ "tower 0.4.13",
+ "tower-http",
+ "tracing",
+ "trait-variant",
+]
+
+[[package]]
+=======
+name = "drip-chain-abci"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "futures",
+ "prost",
+ "serde",
+ "tendermint",
+ "tendermint-abci",
+ "tendermint-config",
+ "tendermint-proto",
+ "tendermint-rpc",
+ "thiserror 2.0.12",
+ "tokio",
+ "toml",
+]
+
+[[package]]
+name = "drip-chain-node"
+version = "0.1.0"
+dependencies = [
+ "anvil",
+ "clap",
+ "drip-chain-abci",
+ "drip-chain-rpc",
+ "drip-chain-types",
+ "futures",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "tokio",
+ "tokio-stream",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "drip-chain-rpc"
+version = "0.1.0"
+dependencies = [
+ "drip-chain-types",
+ "futures",
+ "hyper 1.6.0",
+ "jsonrpsee",
+ "serde",
+ "thiserror 2.0.12",
+ "tokio",
+ "tokio-stream",
+ "tower 0.4.13",
+ "tower-http",
+ "tracing",
+ "trait-variant",
+]
+
+[[package]]
+>>>>>>> 656087a (feat: use thiserror)
 name = "drip-chain-subscriber"
 version = "0.1.0"
 dependencies = [
  "alloy",
  "futures",
  "tokio",
+ "tracing",
 ]
 
 [[package]]

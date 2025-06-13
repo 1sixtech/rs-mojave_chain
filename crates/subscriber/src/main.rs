@@ -19,13 +19,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let task_1 = tokio::spawn(async move {
         while let Some(block) = block_stream.next().await {
-            println!("{block:#?}");
+            tracing::info!(block = ?block, "new block");
         }
     });
 
     let task_2 = tokio::spawn(async move {
         while let Some(transaction_hash) = transaction_stream.next().await {
-            println!("{transaction_hash:?}");
+            tracing::info!(transaction_hash = ?transaction_hash);
         }
     });
 

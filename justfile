@@ -27,6 +27,9 @@ fix flags="":
 	# Update any patch versions
 	cargo update
 
+	# cargo install taplo-cli --locked
+	taplo fmt
+
 # Upgrade any tooling
 upgrade:
 	# Update any patch versions

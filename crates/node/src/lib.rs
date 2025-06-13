@@ -5,7 +5,6 @@ use backend::{error::BackendError, Backend};
 use futures::FutureExt;
 use mohave_chain_json_rpc::{
     config::RpcConfig,
-    error::RpcServerError,
     server::{RpcServer, RpcServerHandle},
 };
 use mohave_chain_types::primitives::{utils::Unit, U256};

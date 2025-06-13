@@ -1,29 +1,16 @@
+#[derive(Debug, thiserror::Error)]
 pub enum BackendError {
+    #[error("Ethereum API error: {0}")]
     EthApi(anvil::eth::error::BlockchainError),
+    #[error("Failed to decode ethFilter response: {0}")]
     EthFilter(String),
-    EthFilterResponse,
+    // CheckTx error.
+    #[error("Failed to broadcast the transaction: {0}")]
+    Broadcast(drip_chain_abci::client::AbciClientError),
+    #[error("Failed to check the transaction: {0}")]
+    CheckTx(String),
+    #[error("Undefined error")]
     Undefined,
+    #[error("Unimplemented")]
     Unimplemented,
 }
-
-impl std::fmt::Debug for BackendError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::EthApi(error) => write!(f, "{error}"),
-            Self::EthFilter(error) => write!(f, "{error}"),
-            Self::EthFilterResponse => write!(f, "Failed to decode ethFilter response"),
-            Self::Broadcast(error) => write!(f, "Failed to broadcast the transaction: {error}"),
-            Self::CheckTx(error) => write!(f, "Failed to check the transaction: {error}"),
-            Self::Undefined => write!(f, "Undefined error"),
-            Self::Unimplemented => write!(f, "Unimplemented"),
-        }
-    }
-}
-
-impl std::fmt::Display for BackendError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:?}")
-    }
-}
-
-impl std::error::Error for BackendError {}
