@@ -31,24 +31,6 @@ impl AbciClient {
     }
 }
 
-pub struct AbciClientError(tendermint_rpc::Error);
-
-impl std::fmt::Debug for AbciClientError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl std::fmt::Display for AbciClientError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl std::error::Error for AbciClientError {}
-
-impl From<tendermint_rpc::Error> for AbciClientError {
-    fn from(value: tendermint_rpc::Error) -> Self {
-        Self(value)
-    }
-}
+#[derive(Debug, thiserror::Error)]
+#[error(transparent)]
+pub struct AbciClientError(#[from] tendermint_rpc::Error);

@@ -221,7 +221,7 @@ pub struct Storage {
     pub pruning: StoragePruning,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 pub enum DbKeyLayout {
     #[serde(rename = "v1")]
     V1,
@@ -272,7 +272,10 @@ where
     }
 
     for item in string.split(',') {
-        result.push(item.parse().map_err(|e| D::Error::custom(format!("{e}")))?);
+        result.push(
+            item.parse()
+                .map_err(|e| D::Error::custom(format_args!("{e}")))?,
+        );
     }
 
     Ok(result)
@@ -285,7 +288,7 @@ where
     T: std::str::FromStr<Err = E>,
     E: std::fmt::Display,
 {
-    let string = Option::<String>::deserialize(deserializer).map(|str| str.unwrap_or_default())?;
+    let string = String::deserialize(deserializer)?;
 
     if string.is_empty() {
         return Ok(None);
@@ -297,24 +300,188 @@ where
         .map_err(|e| D::Error::custom(format!("{e}")))
 }
 
+#[derive(thiserror::Error, Debug)]
 pub enum CometBftConfigError {
+    #[error("Failed to read config file: {0}")]
     Read(std::io::Error),
+    #[error("Failed to deserialize config: {0}")]
     Deserialize(toml::de::Error),
 }
 
-impl std::fmt::Debug for CometBftConfigError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Read(error) => write!(f, "{}", error),
-            Self::Deserialize(error) => write!(f, "{}", error),
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde::de::value::{Error as ValueError, StringDeserializer};
+    use std::str::FromStr;
+
+    #[test]
+    fn test_deserialize_comma_separated_list() {
+        // Test empty string
+        let empty: Result<Vec<String>, _> =
+            deserialize_comma_separated_list(StringDeserializer::<ValueError>::new("".to_string()));
+        assert!(empty.is_ok());
+        assert_eq!(empty.unwrap(), Vec::<String>::new());
+
+        // Test single value
+        let single: Result<Vec<String>, _> = deserialize_comma_separated_list(
+            StringDeserializer::<ValueError>::new("value".to_string()),
+        );
+        assert!(single.is_ok());
+        assert_eq!(single.unwrap(), vec!["value"]);
+
+        // Test multiple values
+        let multiple: Result<Vec<String>, _> = deserialize_comma_separated_list(
+            StringDeserializer::<ValueError>::new("value1,value2,value3".to_string()),
+        );
+        assert!(multiple.is_ok());
+        assert_eq!(multiple.unwrap(), vec!["value1", "value2", "value3"]);
+
+        // Test with custom type that implements FromStr
+        #[derive(Debug, PartialEq)]
+        struct CustomType(u32);
+        impl FromStr for CustomType {
+            type Err = std::num::ParseIntError;
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                s.parse().map(CustomType)
+            }
+        }
+
+        let numbers: Result<Vec<CustomType>, _> = deserialize_comma_separated_list(
+            StringDeserializer::<ValueError>::new("1,2,3".to_string()),
+        );
+        assert!(numbers.is_ok());
+        assert_eq!(
+            numbers.unwrap(),
+            vec![CustomType(1), CustomType(2), CustomType(3)]
+        );
+
+        // Test error case
+        let invalid: Result<Vec<CustomType>, _> = deserialize_comma_separated_list(
+            StringDeserializer::<ValueError>::new("1,invalid,3".to_string()),
+        );
+        assert!(invalid.is_err());
+    }
+
+    #[test]
+    fn test_deserialize_optional_value() {
+        // Test empty string
+        let empty: Result<Option<String>, _> =
+            deserialize_optional_value(StringDeserializer::<ValueError>::new("".to_string()));
+        assert!(empty.is_ok());
+        assert_eq!(empty.unwrap(), None);
+
+        // Test Some value
+        let some: Result<Option<String>, _> =
+            deserialize_optional_value(StringDeserializer::<ValueError>::new("value".to_string()));
+        assert!(some.is_ok());
+        assert_eq!(some.unwrap(), Some("value".to_string()));
+
+        // Test with custom type that implements FromStr
+        #[derive(Debug, PartialEq)]
+        struct CustomType(u32);
+        impl FromStr for CustomType {
+            type Err = std::num::ParseIntError;
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                s.parse().map(CustomType)
+            }
+        }
+
+        let number: Result<Option<CustomType>, _> =
+            deserialize_optional_value(StringDeserializer::<ValueError>::new("42".to_string()));
+        assert!(number.is_ok());
+        assert_eq!(number.unwrap(), Some(CustomType(42)));
+
+        // Test error case
+        let invalid: Result<Option<CustomType>, _> = deserialize_optional_value(
+            StringDeserializer::<ValueError>::new("invalid".to_string()),
+        );
+        assert!(invalid.is_err());
+    }
+
+    #[test]
+    fn test_db_backend_deserialization() {
+        let test_cases = vec![
+            ("badgerdb", Ok(DbBackend::BadgerDb)),
+            ("goleveldb", Ok(DbBackend::GoLevelDb)),
+            ("pebbledb", Ok(DbBackend::PebbleDb)),
+            ("rocksdb", Ok(DbBackend::RocksDb)),
+            ("cleveldb", Ok(DbBackend::ClevelDb)),
+            ("boltdb", Ok(DbBackend::BoltDb)),
+            ("invalid", Err("unknown variant `invalid`")),
+        ];
+
+        for (input, expected) in test_cases {
+            let toml_str = format!("db_backend = \"{input}\"");
+            #[derive(Deserialize)]
+            struct Test {
+                db_backend: DbBackend,
+            }
+            let result = toml::from_str::<Test>(&toml_str).map(|t| t.db_backend);
+            match (result, expected) {
+                (Ok(backend), Ok(expected_backend)) => assert_eq!(backend, expected_backend),
+                (Err(e), Err(expected_err)) => assert!(e.to_string().contains(expected_err)),
+                _ => panic!("Test case failed for input: {input}"),
+            }
         }
     }
-}
 
-impl std::fmt::Display for CometBftConfigError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+    #[test]
+    fn test_mempool_type_deserialization() {
+        let test_cases = vec![
+            ("flood", Ok(MempoolType::Flood)),
+            ("nop", Ok(MempoolType::Nop)),
+            ("invalid", Err("unknown variant `invalid`")),
+        ];
+
+        for (input, expected) in test_cases {
+            let toml_str = format!("type = \"{input}\"");
+            #[derive(Deserialize)]
+            struct Test {
+                #[serde(rename = "type")]
+                mempool_type: MempoolType,
+            }
+            let result = toml::from_str::<Test>(&toml_str).map(|t| t.mempool_type);
+            match (result, expected) {
+                (Ok(mempool_type), Ok(expected_type)) => assert_eq!(mempool_type, expected_type),
+                (Err(e), Err(expected_err)) => assert!(e.to_string().contains(expected_err)),
+                _ => panic!("Test case failed for input: {input}"),
+            }
+        }
+    }
+
+    #[test]
+    fn test_db_key_layout_deserialization() {
+        let test_cases = vec![
+            ("v1", Ok(DbKeyLayout::V1)),
+            ("v2", Ok(DbKeyLayout::V2)),
+            ("invalid", Err("unknown variant `invalid`")),
+        ];
+
+        for (input, expected) in test_cases {
+            let toml_str = format!("experimental_db_key_layout = \"{input}\"");
+            #[derive(Deserialize)]
+            struct Test {
+                experimental_db_key_layout: DbKeyLayout,
+            }
+            let result = toml::from_str::<Test>(&toml_str).map(|t| t.experimental_db_key_layout);
+            match (result, expected) {
+                (Ok(layout), Ok(expected_layout)) => assert_eq!(layout, expected_layout),
+                (Err(e), Err(expected_err)) => assert!(e.to_string().contains(expected_err)),
+                _ => panic!("Test case failed for input: {input}"),
+            }
+        }
+    }
+
+    #[test]
+    fn test_config_error_display() {
+        let read_error = CometBftConfigError::Read(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "file not found",
+        ));
+        assert!(read_error.to_string().contains("file not found"));
+
+        let deserialize_error =
+            CometBftConfigError::Deserialize(toml::de::Error::custom("invalid TOML"));
+        assert!(deserialize_error.to_string().contains("invalid TOML"));
     }
 }
-
-impl std::error::Error for CometBftConfigError {}

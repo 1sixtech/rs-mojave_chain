@@ -38,7 +38,7 @@ impl PubSubService {
         self.new_heads.subscribe().into()
     }
 
-    pub fn subscribe_logs(&self, filter: Option<Box<Filter>>) -> LogsStream {
+    pub fn subscribe_logs(&self, _filter: Option<Box<Filter>>) -> LogsStream {
         self.logs.subscribe().into()
     }
 
@@ -141,21 +141,29 @@ impl AbciService {
     pub fn init() -> Self {
         let (sender, mut receiver) =
             mpsc::unbounded_channel::<(Backend, AbciRequest, oneshot::Sender<AbciResponse>)>();
+
         tokio::spawn(async move {
             loop {
                 if let Some((backend, request, sender)) = receiver.recv().await {
                     match request {
                         AbciRequest::CheckTx(request) => {
                             let response = backend.check_transaction(request).await;
-                            sender.send(response.into()).unwrap();
+                            let _ = sender.send(response.into());
                         }
                         AbciRequest::FinalizeBlock(request) => {
                             let response = backend.do_finalize_block(request).await;
-                            sender.send(response.into()).unwrap();
+                            let _ = sender.send(response.into());
                         }
                         AbciRequest::Commit => {
                             let response = backend.do_commit().await;
-                            sender.send(response.into()).unwrap();
+                            match response {
+                                Ok(response) => {
+                                    let _ = sender.send(response.into());
+                                }
+                                Err(error) => {
+                                    tracing::error!("Error in commit: {:?}", error);
+                                }
+                            }
                         }
                     }
                 }

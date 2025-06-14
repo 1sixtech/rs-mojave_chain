@@ -2,6 +2,12 @@ use drip_chain_node::DRiPNode;
 
 #[tokio::main]
 async fn main() {
-    let handle = DRiPNode::init().await.unwrap();
-    handle.await;
+    match DRiPNode::init().await {
+        Ok(handle) => {
+            handle.await;
+        }
+        Err(error) => {
+            tracing::error!(error = %error, "Error starting DRiP node");
+        }
+    }
 }

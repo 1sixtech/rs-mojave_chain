@@ -46,7 +46,7 @@ impl<T: EthPubSubApi> WebsocketServer<T> {
             SubscriptionKind::NewPendingTransactions => {
                 Self::new_pending_transactions(pending, backend.clone()).await
             }
-            SubscriptionKind::Syncing => return Err(SubscriptionError::Unsupported.into()),
+            SubscriptionKind::Syncing => Err(SubscriptionError::Unsupported.into()),
         }
     }
 
@@ -56,9 +56,16 @@ impl<T: EthPubSubApi> WebsocketServer<T> {
         tokio::spawn(async move {
             let mut stream = backend.subscribe_new_heads().await;
             while let Some(header) = stream.next().await {
-                let message = SubscriptionMessage::from_json(&header).unwrap();
-                if sink.send(message).await.is_err() {
-                    break;
+                match SubscriptionMessage::from_json(&header) {
+                    Ok(message) => {
+                        if sink.send(message).await.is_err() {
+                            break;
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!(error = ?e, "Failed to deserialize header");
+                        break;
+                    }
                 }
             }
 
@@ -84,9 +91,16 @@ impl<T: EthPubSubApi> WebsocketServer<T> {
         tokio::spawn(async move {
             let mut stream = backend.subscribe_logs(filter).await;
             while let Some(logs) = stream.next().await {
-                let message = SubscriptionMessage::from_json(&logs).unwrap();
-                if sink.send(message).await.is_err() {
-                    break;
+                match SubscriptionMessage::from_json(&logs) {
+                    Ok(message) => {
+                        if sink.send(message).await.is_err() {
+                            break;
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!(error = ?e, "Failed to deserialize logs");
+                        break;
+                    }
                 }
             }
 
@@ -104,9 +118,16 @@ impl<T: EthPubSubApi> WebsocketServer<T> {
         tokio::spawn(async move {
             let mut stream = backend.subscribe_new_pending_transaction().await;
             while let Some(new_pending_transaction) = stream.next().await {
-                let message = SubscriptionMessage::from_json(&new_pending_transaction).unwrap();
-                if sink.send(message).await.is_err() {
-                    break;
+                match SubscriptionMessage::from_json(&new_pending_transaction) {
+                    Ok(message) => {
+                        if sink.send(message).await.is_err() {
+                            break;
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!(error = ?e, "Failed to deserialize new pending transaction");
+                        break;
+                    }
                 }
             }
 
@@ -116,16 +137,10 @@ impl<T: EthPubSubApi> WebsocketServer<T> {
     }
 }
 
+#[derive(Debug, thiserror::Error)]
 pub enum SubscriptionError {
+    #[error("Unsupported subscription kind")]
     Unsupported,
+    #[error("Invalid parameter")]
     InvalidParameter,
-}
-
-impl std::fmt::Display for SubscriptionError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Unsupported => write!(f, "Unsupported subscription kind"),
-            Self::InvalidParameter => write!(f, "Invalid parameter"),
-        }
-    }
 }

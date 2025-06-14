@@ -2419,6 +2419,7 @@ dependencies = [
  "tendermint-config",
  "tendermint-proto",
  "tendermint-rpc",
+ "thiserror 2.0.12",
  "tokio",
  "toml",
 ]
@@ -2428,12 +2429,14 @@ name = "drip-chain-node"
 version = "0.1.0"
 dependencies = [
  "anvil",
+ "clap",
  "drip-chain-abci",
  "drip-chain-rpc",
  "drip-chain-types",
  "futures",
  "serde",
  "serde_json",
+ "thiserror 2.0.12",
  "tokio",
  "tokio-stream",
  "tracing",
@@ -2449,10 +2452,12 @@ dependencies = [
  "hyper 1.6.0",
  "jsonrpsee",
  "serde",
+ "thiserror 2.0.12",
  "tokio",
  "tokio-stream",
  "tower 0.4.13",
  "tower-http",
+ "tracing",
  "trait-variant",
 ]
 
@@ -2463,6 +2468,7 @@ dependencies = [
  "alloy",
  "futures",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
