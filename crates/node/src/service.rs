@@ -156,7 +156,14 @@ impl AbciService {
                         }
                         AbciRequest::Commit => {
                             let response = backend.do_commit().await;
-                            let _ = sender.send(response.into());
+                            match response {
+                                Ok(response) => {
+                                    let _ = sender.send(response.into());
+                                }
+                                Err(error) => {
+                                    tracing::error!("Error in commit: {:?}", error);
+                                }
+                            }
                         }
                     }
                 }
