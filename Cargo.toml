@@ -1,9 +1,9 @@
 [workspace]
 members = [
-	"crates/node",
-	"crates/json-rpc",
-	"crates/subscriber",
-	"crates/types",
+  "crates/node",
+  "crates/json-rpc",
+  "crates/subscriber",
+  "crates/types",
 ]
 resolver = "2"
 
