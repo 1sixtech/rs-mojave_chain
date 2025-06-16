@@ -2372,9 +2372,11 @@ name = "drip-chain-subscriber"
 version = "0.1.0"
 dependencies = [
  "alloy",
+ "clap",
  "futures",
  "tokio",
  "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

@@ -1,13 +1,18 @@
+mod args;
+
 use alloy::providers::{Provider, ProviderBuilder, WsConnect};
+use clap::Parser;
 use futures::StreamExt;
-use std::{env, error::Error};
+use std::error::Error;
+
+use crate::args::Args;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let arguments: Vec<String> = env::args().skip(1).collect();
-    let websocket_url = arguments.first().ok_or("Provide the websocket URL")?;
+    tracing_subscriber::fmt::init();
+    let args = Args::parse();
 
-    let connection_detail = WsConnect::new(websocket_url);
+    let connection_detail = WsConnect::new(args.websocket_url);
     let provider = ProviderBuilder::new().on_ws(connection_detail).await?;
 
     let mut block_stream = provider.clone().subscribe_blocks().await?.into_stream();

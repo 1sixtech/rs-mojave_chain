@@ -10,6 +10,4 @@ pub enum BackendError {
     Undefined,
     #[error("Unimplemented")]
     Unimplemented,
-    #[error("Failed to mine a block {0}")]
-    BlockchainError(#[from] anvil::eth::error::BlockchainError),
 }

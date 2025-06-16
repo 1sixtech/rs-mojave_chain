@@ -73,10 +73,6 @@ pub enum MohaveChainNodeError {
     Rpc(#[from] RpcServerError),
     #[error("Backend error: {0}")]
     Backend(#[from] BackendError),
-    #[error("Home directory CLI argument missing")]
-    MissingHomeDirectory,
-    #[error("Invalid RPC address returned from CometBFT config: {0}")]
-    InvalidRpcAddress(String),
     #[error("EVM client error: {0}")]
     Evm(String),
 }
