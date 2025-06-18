@@ -1,4 +1,4 @@
-use mohave_chain_types::rpc::FilterId;
+use mojave_chain_types::rpc::FilterId;
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::Mutex;
 

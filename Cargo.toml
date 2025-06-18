@@ -1,5 +1,6 @@
 [workspace]
 members = [
+  "cmd/mojave",
   "crates/node",
   "crates/json-rpc",
   "crates/subscriber",
@@ -8,9 +9,9 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-mohave-chain-json-rpc = { path = "crates/json-rpc" }
-mohave-chain-node = { path = "crates/node" }
-mohave-chain-types = { path = "crates/types" }
+mojave-chain-json-rpc = { path = "crates/json-rpc" }
+mojave-chain-node = { path = "crates/node" }
+mojave-chain-types = { path = "crates/types" }
 
 futures = "0.3"
 serde = { version = "1", default-features = false }

@@ -1,5 +1,5 @@
 use futures::stream::Stream;
-use mohave_chain_types::{
+use mojave_chain_types::{
     network::AnyHeader,
     primitives::B256,
     rpc::{Filter, Header, Log},

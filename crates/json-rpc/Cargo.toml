@@ -1,10 +1,10 @@
 [package]
-name = "mohave-chain-json-rpc"
+name = "mojave-chain-json-rpc"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-mohave-chain-types = { workspace = true }
+mojave-chain-types = { workspace = true }
 
 futures = { workspace = true }
 jsonrpsee = { version = "0.24", features = ["server"] }

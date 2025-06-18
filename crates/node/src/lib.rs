@@ -5,12 +5,12 @@ pub mod service;
 use backend::{error::BackendError, Backend};
 use clap::Parser;
 use futures::FutureExt;
-use mohave_chain_json_rpc::{
+use mojave_chain_json_rpc::{
     config::RpcConfig,
     error::RpcServerError,
     server::{RpcServer, RpcServerHandle},
 };
-use mohave_chain_types::primitives::{utils::Unit, U256};
+use mojave_chain_types::primitives::{utils::Unit, U256};
 use std::{
     future::Future,
     pin::Pin,
@@ -19,10 +19,10 @@ use std::{
 
 use crate::args::Args;
 
-pub struct MohaveChainNode;
+pub struct MojaveChainNode;
 
-impl MohaveChainNode {
-    pub async fn init() -> Result<MohaveChainNodeHandle, MohaveChainNodeError> {
+impl MojaveChainNode {
+    pub async fn init() -> Result<MojaveChainNodeHandle, MojaveChainNodeError> {
         let _args = Args::parse();
 
         // Initialize anvil backend.
@@ -30,7 +30,7 @@ impl MohaveChainNode {
         let node_config = anvil::NodeConfig::default().with_genesis_balance(balance);
         let (evm_client, evm_client_handle) = anvil::try_spawn(node_config)
             .await
-            .map_err(|e| MohaveChainNodeError::Evm(e.to_string()))?;
+            .map_err(|e| MojaveChainNodeError::Evm(e.to_string()))?;
 
         // Initialize the backend.
         let backend = Backend::init(evm_client);
@@ -39,7 +39,7 @@ impl MohaveChainNode {
         let rpc_config = RpcConfig::default();
         let rpc_server_handle = RpcServer::init(&rpc_config, backend).await?;
 
-        let handle = MohaveChainNodeHandle {
+        let handle = MojaveChainNodeHandle {
             rpc_server: rpc_server_handle,
             evm_client_handle,
         };
@@ -47,14 +47,14 @@ impl MohaveChainNode {
     }
 }
 
-pub struct MohaveChainNodeHandle {
+pub struct MojaveChainNodeHandle {
     rpc_server: RpcServerHandle,
     #[allow(unused)]
     evm_client_handle: anvil::NodeHandle,
 }
 
-impl Future for MohaveChainNodeHandle {
-    type Output = MohaveChainNodeError;
+impl Future for MojaveChainNodeHandle {
+    type Output = MojaveChainNodeError;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let this = self.get_mut();
@@ -68,7 +68,7 @@ impl Future for MohaveChainNodeHandle {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum MohaveChainNodeError {
+pub enum MojaveChainNodeError {
     #[error("RPC server error: {0}")]
     Rpc(#[from] RpcServerError),
     #[error("Backend error: {0}")]

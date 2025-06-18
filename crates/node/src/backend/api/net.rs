@@ -1,6 +1,6 @@
 use crate::backend::{error::BackendError, Backend};
-use mohave_chain_json_rpc::api::net::NetApi;
-use mohave_chain_types::primitives::U64;
+use mojave_chain_json_rpc::api::net::NetApi;
+use mojave_chain_types::primitives::U64;
 
 impl NetApi for Backend {
     type Error = BackendError;

@@ -1,4 +1,4 @@
-use mohave_chain_types::primitives::Bytes;
+use mojave_chain_types::primitives::Bytes;
 
 #[trait_variant::make(Web3Api: Send)]
 pub trait LocalWeb3Api: Clone + Send + Sync + 'static {

@@ -1,8 +1,8 @@
-use mohave_chain_node::MohaveChainNode;
+use mojave_chain_node::MojaveChainNode;
 
 #[tokio::main]
 async fn main() {
-    match MohaveChainNode::init().await {
+    match MojaveChainNode::init().await {
         Ok(handle) => {
             handle.await;
         }

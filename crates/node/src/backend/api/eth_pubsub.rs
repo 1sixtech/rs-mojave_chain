@@ -1,7 +1,7 @@
 use crate::backend::Backend;
 use futures::stream::Stream;
-use mohave_chain_json_rpc::api::eth_pubsub::EthPubSubApi;
-use mohave_chain_types::{
+use mojave_chain_json_rpc::api::eth_pubsub::EthPubSubApi;
+use mojave_chain_types::{
     network::AnyHeader,
     primitives::B256,
     rpc::{Filter, Header, Log},

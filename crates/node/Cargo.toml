@@ -1,15 +1,15 @@
 [package]
-name = "mohave-chain-node"
+name = "mojave-chain-node"
 version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "mohave-chain-node"
+name = "mojave-chain-node"
 path = "src/bin/main.rs"
 
 [dependencies]
-mohave-chain-json-rpc = { workspace = true }
-mohave-chain-types = { workspace = true }
+mojave-chain-json-rpc = { workspace = true }
+mojave-chain-types = { workspace = true }
 
 anvil = { git = "https://github.com/foundry-rs/foundry", rev = "d484a00089d789a19e2e43e63bbb3f1500eb2cbf" }
 futures = { workspace = true }

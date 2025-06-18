@@ -6,7 +6,7 @@ use jsonrpsee::{
     server::{Server, ServerHandle},
     types::Params,
 };
-use mohave_chain_types::rpc::pubsub::{Params as SubscriptionParams, SubscriptionKind};
+use mojave_chain_types::rpc::pubsub::{Params as SubscriptionParams, SubscriptionKind};
 use std::{marker::PhantomData, sync::Arc};
 
 pub struct WebsocketServer<T: EthPubSubApi> {
