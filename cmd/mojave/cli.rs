@@ -9,5 +9,5 @@ pub struct CLI {
     #[command(flatten)]
     pub opts: Options,
     #[command(subcommand)]
-    pub command: Option<Command>,
+    pub command: Command,
 }
