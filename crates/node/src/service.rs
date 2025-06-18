@@ -1,7 +1,7 @@
 use futures::{Stream, StreamExt};
 use mojave_chain_types::{
+    alloy::primitives::B256,
     network::AnyHeader,
-    primitives::B256,
     rpc::{Filter, Header, Log},
 };
 use std::{

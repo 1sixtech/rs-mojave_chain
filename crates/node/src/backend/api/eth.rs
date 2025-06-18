@@ -1,8 +1,8 @@
 use crate::backend::{error::BackendError, Backend};
 use mojave_chain_json_rpc::api::eth::EthApi;
 use mojave_chain_types::{
+    alloy::primitives::{Address, Bytes, B256, U256, U64},
     network::{AnyRpcBlock, AnyRpcTransaction},
-    primitives::{Address, Bytes, B256, U256, U64},
     rpc::*,
 };
 

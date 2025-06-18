@@ -1,6 +1,6 @@
 use mojave_chain_types::{
+    alloy::primitives::{Address, B256, Bytes, U64, U256},
     network::{AnyRpcBlock, AnyRpcTransaction},
-    primitives::{Address, B256, Bytes, U64, U256},
     rpc::*,
 };
 

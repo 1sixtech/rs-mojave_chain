@@ -10,7 +10,7 @@ use mojave_chain_json_rpc::{
     error::RpcServerError,
     server::{RpcServer, RpcServerHandle},
 };
-use mojave_chain_types::primitives::{utils::Unit, U256};
+use mojave_chain_types::alloy::primitives::{utils::Unit, U256};
 use std::{
     future::Future,
     pin::Pin,

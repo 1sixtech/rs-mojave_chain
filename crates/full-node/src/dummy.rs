@@ -3,8 +3,8 @@ use mojave_chain_json_rpc::api::{
     eth::EthApi, eth_pubsub::EthPubSubApi, net::NetApi, web3::Web3Api,
 };
 use mojave_chain_types::{
+    alloy::primitives::{Address, Bytes, B256, U256, U64},
     network::{AnyHeader, AnyRpcBlock, AnyRpcTransaction},
-    primitives::{Address, Bytes, B256, U256, U64},
     rpc::*,
 };
 

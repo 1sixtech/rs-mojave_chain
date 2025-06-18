@@ -1,4 +1,4 @@
-use crate::primitives::{Address, B256, Bytes, U64, U256};
+use crate::alloy::primitives::{Address, B256, Bytes, U64, U256};
 /// Re-export RPC types
 pub use alloy::rpc::types::*;
 pub use anvil_core::eth::transaction::TypedReceipt;

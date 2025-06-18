@@ -1,4 +1,4 @@
-use mojave_chain_types::primitives::U64;
+use mojave_chain_types::alloy::primitives::U64;
 
 #[trait_variant::make(NetApi: Send)]
 pub trait LocalNetApi: Clone + Send + Sync + 'static {
