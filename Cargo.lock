@@ -4399,9 +4399,23 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "futures",
+ "mojave-chain-full-node",
+ "mojave-chain-json-rpc",
  "tokio",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "mojave-chain-full-node"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "futures",
+ "mojave-chain-json-rpc",
+ "mojave-chain-types",
+ "thiserror 2.0.12",
 ]
 
 [[package]]

@@ -10,5 +10,7 @@ async fn main() -> Result<()> {
 
     tracing::info!(opts = ?opts, command = ?command, "Starting Mojave node");
 
+    command.run().await?;
+
     Ok(())
 }

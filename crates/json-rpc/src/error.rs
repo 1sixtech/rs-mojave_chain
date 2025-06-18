@@ -8,6 +8,8 @@ pub enum RpcServerError {
     RpcServerStopped,
     #[error("JSON-RPC websocket server stopped")]
     WebsocketServerStopped,
+    #[error("JSON-RPC shut down signal received")]
+    ShutdownSignalReceived,
 }
 
 impl From<jsonrpsee::core::RegisterMethodError> for RpcServerError {

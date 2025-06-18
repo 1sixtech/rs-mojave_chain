@@ -37,7 +37,7 @@ impl MojaveChainNode {
 
         // Initialize RPC server.
         let rpc_config = RpcConfig::default();
-        let rpc_server_handle = RpcServer::init(&rpc_config, backend).await?;
+        let rpc_server_handle = RpcServer::init(&rpc_config, backend, None).await?;
 
         let handle = MojaveChainNodeHandle {
             rpc_server: rpc_server_handle,

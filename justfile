@@ -7,7 +7,7 @@ default:
 node:
     cargo build --bin mojave
 
-    cargo run --bin mojave
+    cargo run --bin mojave -- full-node
 
 # Fix some issues
 fix flags="":

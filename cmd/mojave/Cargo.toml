@@ -12,7 +12,14 @@ name = "mojave"
 path = "./lib.rs"
 
 [dependencies]
+mojave-chain-full-node = { workspace = true }
+mojave-chain-json-rpc = { workspace = true }
+
 tokio = { workspace = true, features = ["full"] }
+
+# async
+futures = { workspace = true }
+
 
 # logging
 tracing = { workspace = true }
@@ -20,4 +27,4 @@ tracing-subscriber = { workspace = true, features = ["env-filter"] }
 
 # misc
 clap = { workspace = true, features = ["derive", "env", "string"] }
-anyhow = { version = "1.0" }
+anyhow = { workspace = true }
