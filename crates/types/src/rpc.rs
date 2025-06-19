@@ -1,14 +1,15 @@
-use crate::alloy::primitives::{Address, B256, Bytes, U64, U256};
+use crate::{
+    eips::{BlockId, BlockNumberOrTag},
+    primitives::{Address, B256, Bytes, U256, alloy_primitives::U64},
+};
+use ethrex_common::types::{GenericTransaction, Transaction};
 /// Re-export RPC types
-pub use alloy::rpc::types::*;
-pub use anvil_core::eth::transaction::TypedReceipt;
-pub use anvil_rpc::response::ResponseResult;
 use serde::{Deserialize, Serialize};
-use serde_helpers::WithOtherFields;
+//use serde_helpers::WithOtherFields;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EthCall {
-    pub request: WithOtherFields<TransactionRequest>,
+    //pub request: WithOtherFields<TransactionRequest>,
     pub block_number: Option<BlockId>,
     // pub state_overrides: Option<StateOverride>,
     // pub block_overrides: Option<Box<BlockOverrides>>,
@@ -16,13 +17,14 @@ pub struct EthCall {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EthCreateAccessList {
-    pub request: WithOtherFields<TransactionRequest>,
+    //pub request: WithOtherFields<TransactionRequest>,
     pub block_number: Option<BlockId>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EthEstimateGas {
-    pub request: WithOtherFields<TransactionRequest>,
+    pub request: Transaction,
+    //pub request: WithOtherFields<TransactionRequest>,
     // pub block_number: Option<BlockId>,
     // pub state_override: Option<StateOverride>,
 }
@@ -90,13 +92,13 @@ pub struct EthGetStorageAt {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EthGetTransactionByBlockHashAndIndex {
     pub hash: B256,
-    pub index: Index,
+    pub index: usize,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EthGetTransactionByBlockNumberAndIndex {
     pub number: BlockNumberOrTag,
-    pub index: Index,
+    pub index: usize,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -132,7 +134,7 @@ pub struct EthSendRawTransaction {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EthSendTransaction {
-    pub transaction: WithOtherFields<TransactionRequest>,
+    //pub transaction: WithOtherFields<TransactionRequest>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -143,7 +145,9 @@ pub struct EthSign {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct EthSignTransaction {
-    pub transaction: WithOtherFields<TransactionRequest>,
+    //pub transaction: WithOtherFields<TransactionRequest>,
 }
 
 pub type TransactionHash = B256;
+
+//pub type Filter = ethrex_rpc::

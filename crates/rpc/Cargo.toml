@@ -1,0 +1,15 @@
+[package]
+name = "mojave-chain-rpc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+mojave-chain-types = { workspace = true }
+mojave-chain-json-rpc = { workspace = true }
+
+ethrex-rpc ={ workspace = true }
+
+thiserror = { workspace = true }
+
+
+alloy-network ={ version = "0.19" }

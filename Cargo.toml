@@ -1,11 +1,12 @@
 [workspace]
 members = [
-  "cmd/mojave",
-  "crates/node",
+  #"cmd/mojave",
+  #"crates/node",
   "crates/json-rpc",
-  "crates/subscriber",
+  #"crates/subscriber",
+  "crates/rpc",
   "crates/types",
-  "crates/full-node",
+  #"crates/full-node",
 ]
 resolver = "2"
 
@@ -31,3 +32,7 @@ clap = { version = "4.5", features = ["derive"] }
 # error handling
 thiserror = "2"
 anyhow = { version = "1.0" }
+
+
+ethrex-rpc = { git = "https://github.com/1sixtech/ethrex", rev = "bde2eafc168c020cd1e21d3e68f2c994df7043ba" }
+ethrex-common = { git = "https://github.com/1sixtech/ethrex", rev = "bde2eafc168c020cd1e21d3e68f2c994df7043ba" }

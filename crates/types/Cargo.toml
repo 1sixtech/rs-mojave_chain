@@ -4,16 +4,18 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-alloy = { version = "0.12", features = [
-  "consensus",
-  "eips",
-  "json-rpc",
-  "k256",
-  "network",
-  "rlp",
-  "rpc-types",
-  "serde",
-] }
-anvil-core = { git = "https://github.com/foundry-rs/foundry", rev = "d484a00089d789a19e2e43e63bbb3f1500eb2cbf" }
-anvil-rpc = { git = "https://github.com/foundry-rs/foundry", rev = "d484a00089d789a19e2e43e63bbb3f1500eb2cbf" }
+revm = { version = "19.0.0", features = [
+    "serde",
+    "std",
+    "serde-json",
+    "optional_no_base_fee",
+    "optional_block_gas_limit",
+], default-features = false }
+
+alloy-eips = { version = "0.12", features = ["serde"] } 
+alloy-network ={ version = "0.19" }
+
 serde = { workspace = true, features = ["derive"] }
+
+ethrex-rpc ={ workspace = true }
+ethrex-common = { workspace = true }

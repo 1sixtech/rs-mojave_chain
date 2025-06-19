@@ -11,8 +11,9 @@ use jsonrpsee::{
     types::{ErrorCode, ErrorObjectOwned, Params},
 };
 use mojave_chain_types::{
-    alloy::primitives::{Address, B256, Bytes, U64, U256},
-    network::{AnyRpcBlock, AnyRpcTransaction},
+    //network::{AnyRpcBlock, AnyRpcTransaction},
+    common::{Address, Bytes, H256, U64, U256},
+    primitives::B256,
     rpc::*,
 };
 use std::{marker::PhantomData, sync::Arc};
@@ -129,14 +130,14 @@ where
         rpc_module.register_async_method("eth_call", Self::call)?;
         rpc_module.register_async_method("eth_chainId", Self::chain_id)?;
         rpc_module.register_async_method("eth_coinbase", Self::coinbase)?;
-        rpc_module.register_async_method("eth_createAccessList", Self::create_access_list)?;
+        //rpc_module.register_async_method("eth_createAccessList", Self::create_access_list)?;
         rpc_module.register_async_method("eth_estimateGas", Self::estimate_gas)?;
-        rpc_module.register_async_method("eth_feeHistory", Self::fee_history)?;
+        //rpc_module.register_async_method("eth_feeHistory", Self::fee_history)?;
         rpc_module.register_async_method("eth_gasPrice", Self::gas_price)?;
         rpc_module.register_async_method("eth_getBalance", Self::get_balance)?;
-        rpc_module.register_async_method("eth_getBlockByHash", Self::get_block_by_hash)?;
-        rpc_module.register_async_method("eth_getBlockByNumber", Self::get_block_by_number)?;
-        rpc_module.register_async_method("eth_getBlockReceipts", Self::get_block_receipts)?;
+        //rpc_module.register_async_method("eth_getBlockByHash", Self::get_block_by_hash)?;
+        //rpc_module.register_async_method("eth_getBlockByNumber", Self::get_block_by_number)?;
+        //rpc_module.register_async_method("eth_getBlockReceipts", Self::get_block_receipts)?;
         rpc_module.register_async_method(
             "eth_getBlockTransactionCountByHash",
             Self::get_block_transaction_count_by_hash,
@@ -146,21 +147,21 @@ where
             Self::get_block_transaction_count_by_number,
         )?;
         rpc_module.register_async_method("eth_getCode", Self::get_code)?;
-        rpc_module.register_async_method("eth_getProof", Self::get_proof)?;
+        //rpc_module.register_async_method("eth_getProof", Self::get_proof)?;
         rpc_module.register_async_method("eth_getStorageAt", Self::get_storage_at)?;
-        rpc_module.register_async_method(
-            "eth_getTransactionByBlockHashAndIndex",
-            Self::get_transaction_by_block_hash_and_index,
-        )?;
-        rpc_module.register_async_method(
-            "eth_getTransactionByBlockNumberAndIndex",
-            Self::get_transaction_by_block_number_and_index,
-        )?;
-        rpc_module
-            .register_async_method("eth_getTransactionByHash", Self::get_transaction_by_hash)?;
+        //rpc_module.register_async_method(
+        //    "eth_getTransactionByBlockHashAndIndex",
+        //    Self::get_transaction_by_block_hash_and_index,
+        //)?;
+        //rpc_module.register_async_method(
+        //    "eth_getTransactionByBlockNumberAndIndex",
+        //    Self::get_transaction_by_block_number_and_index,
+        //)?;
+        //rpc_module
+        //    .register_async_method("eth_getTransactionByHash", Self::get_transaction_by_hash)?;
         rpc_module.register_async_method("eth_getTransactionCount", Self::get_transaction_count)?;
-        rpc_module
-            .register_async_method("eth_getTransactionReceipt", Self::get_transaction_receipt)?;
+        //rpc_module
+        //    .register_async_method("eth_getTransactionReceipt", Self::get_transaction_receipt)?;
         rpc_module.register_async_method(
             "eth_getUncleCountByBlockHash",
             Self::get_uncle_count_by_block_hash,
@@ -176,11 +177,11 @@ where
         rpc_module.register_async_method("eth_sign", Self::sign)?;
         rpc_module.register_async_method("eth_signTransaction", Self::sign_transaction)?;
         rpc_module.register_async_method("eth_syncing", Self::syncing)?;
-        rpc_module.register_async_method("eth_getFilterChanges", Self::get_filter_changes)?;
-        rpc_module.register_async_method("eth_getFilterLogs", Self::get_filter_logs)?;
-        rpc_module.register_async_method("eth_getLogs", Self::get_logs)?;
+        //rpc_module.register_async_method("eth_getFilterChanges", Self::get_filter_changes)?;
+        //rpc_module.register_async_method("eth_getFilterLogs", Self::get_filter_logs)?;
+        //rpc_module.register_async_method("eth_getLogs", Self::get_logs)?;
         rpc_module.register_async_method("eth_newBlockFilter", Self::new_block_filter)?;
-        rpc_module.register_async_method("eth_newFilter", Self::new_filter)?;
+        //rpc_module.register_async_method("eth_newFilter", Self::new_filter)?;
         rpc_module.register_async_method(
             "eth_newPendingTransactionFilter",
             Self::new_pending_transaction_filter,
@@ -231,7 +232,7 @@ where
         _parameter: Params<'static>,
         backend: Arc<T>,
         _extension: Extensions,
-    ) -> RpcResult<Option<U64>> {
+    ) -> RpcResult<Option<U256>> {
         backend.chain_id().await.into_rpc_result()
     }
 
@@ -244,18 +245,18 @@ where
         backend.coinbase().await.into_rpc_result()
     }
 
-    /// Handler for [EthApi::create_access_list]
-    async fn create_access_list(
-        parameter: Params<'static>,
-        backend: Arc<T>,
-        _extension: Extensions,
-    ) -> RpcResult<AccessListResult> {
-        let parameter = parameter.parse::<EthCreateAccessList>()?;
-        backend
-            .create_access_list(parameter)
-            .await
-            .into_rpc_result()
-    }
+    ///// Handler for [EthApi::create_access_list]
+    //async fn create_access_list(
+    //    parameter: Params<'static>,
+    //    backend: Arc<T>,
+    //    _extension: Extensions,
+    //) -> RpcResult<AccessListResult> {
+    //    let parameter = parameter.parse::<EthCreateAccessList>()?;
+    //    backend
+    //        .create_access_list(parameter)
+    //        .await
+    //        .into_rpc_result()
+    //}
 
     /// Handler for [EthApi::estimate_gas]
     async fn estimate_gas(
@@ -267,15 +268,15 @@ where
         backend.estimate_gas(parameter).await.into_rpc_result()
     }
 
-    /// Handler for [EthApi::fee_history]
-    async fn fee_history(
-        parameter: Params<'static>,
-        backend: Arc<T>,
-        _extension: Extensions,
-    ) -> RpcResult<FeeHistory> {
-        let parameter = parameter.parse::<EthFeeHistory>()?;
-        backend.fee_history(parameter).await.into_rpc_result()
-    }
+    ///// Handler for [EthApi::fee_history]
+    //async fn fee_history(
+    //    parameter: Params<'static>,
+    //    backend: Arc<T>,
+    //    _extension: Extensions,
+    //) -> RpcResult<FeeHistory> {
+    //    let parameter = parameter.parse::<EthFeeHistory>()?;
+    //    backend.fee_history(parameter).await.into_rpc_result()
+    //}
 
     /// Handler for [EthApi::gas_price]
     async fn gas_price(
@@ -296,41 +297,41 @@ where
         backend.get_balance(parameter).await.into_rpc_result()
     }
 
-    /// Handler for [EthApi::get_block_by_hash]
-    async fn get_block_by_hash(
-        parameter: Params<'static>,
-        backend: Arc<T>,
-        _extension: Extensions,
-    ) -> RpcResult<Option<AnyRpcBlock>> {
-        let parameter = parameter.parse()?;
-        backend.get_block_by_hash(parameter).await.into_rpc_result()
-    }
+    ///// Handler for [EthApi::get_block_by_hash]
+    //async fn get_block_by_hash(
+    //    parameter: Params<'static>,
+    //    backend: Arc<T>,
+    //    _extension: Extensions,
+    //) -> RpcResult<Option<AnyRpcBlock>> {
+    //    let parameter = parameter.parse()?;
+    //    backend.get_block_by_hash(parameter).await.into_rpc_result()
+    //}
 
-    /// Handler for [EthApi::get_block_by_number]
-    async fn get_block_by_number(
-        parameter: Params<'static>,
-        backend: Arc<T>,
-        _extension: Extensions,
-    ) -> RpcResult<Option<AnyRpcBlock>> {
-        let parameter = parameter.parse()?;
-        backend
-            .get_block_by_number(parameter)
-            .await
-            .into_rpc_result()
-    }
+    ///// Handler for [EthApi::get_block_by_number]
+    //async fn get_block_by_number(
+    //    parameter: Params<'static>,
+    //    backend: Arc<T>,
+    //    _extension: Extensions,
+    //) -> RpcResult<Option<AnyRpcBlock>> {
+    //    let parameter = parameter.parse()?;
+    //    backend
+    //        .get_block_by_number(parameter)
+    //        .await
+    //        .into_rpc_result()
+    //}
 
-    /// Handler for [EthApi::get_block_receipts]
-    async fn get_block_receipts(
-        parameter: Params<'static>,
-        backend: Arc<T>,
-        _extension: Extensions,
-    ) -> RpcResult<Option<Vec<TransactionReceipt<TypedReceipt<Receipt<Log>>>>>> {
-        let parameter = parameter.parse::<EthBlockReceipts>()?;
-        backend
-            .get_block_receipts(parameter)
-            .await
-            .into_rpc_result()
-    }
+    ///// Handler for [EthApi::get_block_receipts]
+    //async fn get_block_receipts(
+    //    parameter: Params<'static>,
+    //    backend: Arc<T>,
+    //    _extension: Extensions,
+    //) -> RpcResult<Option<Vec<TransactionReceipt<TypedReceipt<Receipt<Log>>>>>> {
+    //    let parameter = parameter.parse::<EthBlockReceipts>()?;
+    //    backend
+    //        .get_block_receipts(parameter)
+    //        .await
+    //        .into_rpc_result()
+    //}
 
     /// Handler for [EthApi::get_block_transaction_count_by_hash]
     async fn get_block_transaction_count_by_hash(
@@ -368,15 +369,15 @@ where
         backend.get_code(parameter).await.into_rpc_result()
     }
 
-    /// Handler for [EthApi::get_proof]
-    async fn get_proof(
-        parameter: Params<'static>,
-        backend: Arc<T>,
-        _extension: Extensions,
-    ) -> RpcResult<EIP1186AccountProofResponse> {
-        let parameter = parameter.parse::<EthGetProof>()?;
-        backend.get_proof(parameter).await.into_rpc_result()
-    }
+    ///// Handler for [EthApi::get_proof]
+    //async fn get_proof(
+    //    parameter: Params<'static>,
+    //    backend: Arc<T>,
+    //    _extension: Extensions,
+    //) -> RpcResult<EIP1186AccountProofResponse> {
+    //    let parameter = parameter.parse::<EthGetProof>()?;
+    //    backend.get_proof(parameter).await.into_rpc_result()
+    //}
 
     /// Handler for [EthApi::get_storage_at]
     async fn get_storage_at(
@@ -388,44 +389,44 @@ where
         backend.get_storage_at(parameter).await.into_rpc_result()
     }
 
-    /// Handler for [EthApi::get_transaction_by_block_hash_and_index]
-    async fn get_transaction_by_block_hash_and_index(
-        parameter: Params<'static>,
-        backend: Arc<T>,
-        _extension: Extensions,
-    ) -> RpcResult<Option<AnyRpcTransaction>> {
-        let parameter = parameter.parse::<EthGetTransactionByBlockHashAndIndex>()?;
-        backend
-            .get_transaction_by_block_hash_and_index(parameter)
-            .await
-            .into_rpc_result()
-    }
+    ///// Handler for [EthApi::get_transaction_by_block_hash_and_index]
+    //async fn get_transaction_by_block_hash_and_index(
+    //    parameter: Params<'static>,
+    //    backend: Arc<T>,
+    //    _extension: Extensions,
+    //) -> RpcResult<Option<AnyRpcTransaction>> {
+    //    let parameter = parameter.parse::<EthGetTransactionByBlockHashAndIndex>()?;
+    //    backend
+    //        .get_transaction_by_block_hash_and_index(parameter)
+    //        .await
+    //        .into_rpc_result()
+    //}
 
-    /// Handler for [EthApi::get_transaction_by_block_number_and_index]
-    async fn get_transaction_by_block_number_and_index(
-        parameter: Params<'static>,
-        backend: Arc<T>,
-        _extension: Extensions,
-    ) -> RpcResult<Option<AnyRpcTransaction>> {
-        let parameter = parameter.parse::<EthGetTransactionByBlockNumberAndIndex>()?;
-        backend
-            .get_transaction_by_block_number_and_index(parameter)
-            .await
-            .into_rpc_result()
-    }
+    ///// Handler for [EthApi::get_transaction_by_block_number_and_index]
+    //async fn get_transaction_by_block_number_and_index(
+    //    parameter: Params<'static>,
+    //    backend: Arc<T>,
+    //    _extension: Extensions,
+    //) -> RpcResult<Option<AnyRpcTransaction>> {
+    //    let parameter = parameter.parse::<EthGetTransactionByBlockNumberAndIndex>()?;
+    //    backend
+    //        .get_transaction_by_block_number_and_index(parameter)
+    //        .await
+    //        .into_rpc_result()
+    //}
 
-    /// Handler for [EthApi::get_transaction_by_hash]
-    async fn get_transaction_by_hash(
-        parameter: Params<'static>,
-        backend: Arc<T>,
-        _extension: Extensions,
-    ) -> RpcResult<Option<AnyRpcTransaction>> {
-        let parameter = parameter.parse::<EthgetTransactionByHash>()?;
-        backend
-            .get_transaction_by_hash(parameter)
-            .await
-            .into_rpc_result()
-    }
+    ///// Handler for [EthApi::get_transaction_by_hash]
+    //async fn get_transaction_by_hash(
+    //    parameter: Params<'static>,
+    //    backend: Arc<T>,
+    //    _extension: Extensions,
+    //) -> RpcResult<Option<AnyRpcTransaction>> {
+    //    let parameter = parameter.parse::<EthgetTransactionByHash>()?;
+    //    backend
+    //        .get_transaction_by_hash(parameter)
+    //        .await
+    //        .into_rpc_result()
+    //}
 
     /// Handler for [EthApi::get_transaction_count]
     async fn get_transaction_count(
@@ -440,18 +441,18 @@ where
             .into_rpc_result()
     }
 
-    /// Handler for [EthApi::get_transaction_receipt]
-    async fn get_transaction_receipt(
-        parameter: Params<'static>,
-        backend: Arc<T>,
-        _extension: Extensions,
-    ) -> RpcResult<Option<TransactionReceipt<TypedReceipt<Receipt<Log>>>>> {
-        let parameter = parameter.parse::<EthGetTransactionReceipt>()?;
-        backend
-            .get_transaction_receipt(parameter)
-            .await
-            .into_rpc_result()
-    }
+    ///// Handler for [EthApi::get_transaction_receipt]
+    //async fn get_transaction_receipt(
+    //    parameter: Params<'static>,
+    //    backend: Arc<T>,
+    //    _extension: Extensions,
+    //) -> RpcResult<Option<TransactionReceipt<TypedReceipt<Receipt<Log>>>>> {
+    //    let parameter = parameter.parse::<EthGetTransactionReceipt>()?;
+    //    backend
+    //        .get_transaction_receipt(parameter)
+    //        .await
+    //        .into_rpc_result()
+    //}
 
     /// Handler for [EthApi::get_uncle_count_by_block_hash]
     async fn get_uncle_count_by_block_hash(
@@ -493,7 +494,7 @@ where
         parameter: Params<'static>,
         backend: Arc<T>,
         _extension: Extensions,
-    ) -> RpcResult<B256> {
+    ) -> RpcResult<H256> {
         let parameter = parameter.parse::<EthSendRawTransaction>()?;
         backend
             .send_raw_transaction(parameter)
@@ -540,35 +541,35 @@ where
         backend.syncing().await.into_rpc_result()
     }
 
-    async fn get_filter_changes(
-        parameter: Params<'static>,
-        backend: Arc<T>,
-        _extension: Extensions,
-    ) -> RpcResult<FilterChanges> {
-        let parameter = parameter.parse::<String>()?;
-        backend
-            .get_filter_changes(parameter)
-            .await
-            .into_rpc_result()
-    }
+    //async fn get_filter_changes(
+    //    parameter: Params<'static>,
+    //    backend: Arc<T>,
+    //    _extension: Extensions,
+    //) -> RpcResult<FilterChanges> {
+    //    let parameter = parameter.parse::<String>()?;
+    //    backend
+    //        .get_filter_changes(parameter)
+    //        .await
+    //        .into_rpc_result()
+    //}
 
-    async fn get_filter_logs(
-        parameter: Params<'static>,
-        backend: Arc<T>,
-        _extension: Extensions,
-    ) -> RpcResult<Vec<Log>> {
-        let parameter = parameter.parse::<String>()?;
-        backend.get_filter_logs(parameter).await.into_rpc_result()
-    }
+    //async fn get_filter_logs(
+    //    parameter: Params<'static>,
+    //    backend: Arc<T>,
+    //    _extension: Extensions,
+    //) -> RpcResult<Vec<Log>> {
+    //    let parameter = parameter.parse::<String>()?;
+    //    backend.get_filter_logs(parameter).await.into_rpc_result()
+    //}
 
-    async fn get_logs(
-        parameter: Params<'static>,
-        backend: Arc<T>,
-        _extension: Extensions,
-    ) -> RpcResult<Vec<Log>> {
-        let parameter = parameter.parse::<Filter>()?;
-        backend.get_logs(parameter).await.into_rpc_result()
-    }
+    //async fn get_logs(
+    //    parameter: Params<'static>,
+    //    backend: Arc<T>,
+    //    _extension: Extensions,
+    //) -> RpcResult<Vec<Log>> {
+    //    let parameter = parameter.parse::<Filter>()?;
+    //    backend.get_logs(parameter).await.into_rpc_result()
+    //}
 
     async fn new_block_filter(
         _parameter: Params<'static>,
@@ -578,14 +579,14 @@ where
         backend.new_block_filter().await.into_rpc_result()
     }
 
-    async fn new_filter(
-        parameter: Params<'static>,
-        backend: Arc<T>,
-        _extension: Extensions,
-    ) -> RpcResult<String> {
-        let parameter = parameter.parse::<Filter>()?;
-        backend.new_filter(parameter).await.into_rpc_result()
-    }
+    //async fn new_filter(
+    //    parameter: Params<'static>,
+    //    backend: Arc<T>,
+    //    _extension: Extensions,
+    //) -> RpcResult<String> {
+    //    let parameter = parameter.parse::<Filter>()?;
+    //    backend.new_filter(parameter).await.into_rpc_result()
+    //}
 
     async fn new_pending_transaction_filter(
         _parameter: Params<'static>,

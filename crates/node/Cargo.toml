@@ -11,7 +11,6 @@ path = "src/bin/main.rs"
 mojave-chain-json-rpc = { workspace = true }
 mojave-chain-types = { workspace = true }
 
-anvil = { git = "https://github.com/foundry-rs/foundry", rev = "d484a00089d789a19e2e43e63bbb3f1500eb2cbf" }
 futures = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = "1"
