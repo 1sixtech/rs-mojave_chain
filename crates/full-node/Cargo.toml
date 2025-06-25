@@ -5,13 +5,6 @@ edition = "2021"
 
 [dependencies]
 mojave-chain-json-rpc = { workspace = true }
-mojave-chain-types = { workspace = true }
-
-# async
-futures = { workspace = true }
-
-# misc 
-clap = { workspace = true, features = ["derive"] }
 
 # error handling
 thiserror = { workspace = true }

@@ -17,9 +17,6 @@ mojave-chain-json-rpc = { workspace = true }
 
 tokio = { workspace = true, features = ["full"] }
 
-# async
-futures = { workspace = true }
-
 
 # logging
 tracing = { workspace = true }

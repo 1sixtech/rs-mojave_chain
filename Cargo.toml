@@ -1,28 +1,11 @@
 [workspace]
-members = [
-  "cmd/mojave",
-  "crates/node",
-  "crates/json-rpc",
-  "crates/subscriber",
-  "crates/types",
-  "crates/full-node",
-]
+members = ["cmd/mojave", "crates/json-rpc", "crates/full-node"]
 resolver = "2"
 
 [workspace.dependencies]
 mojave-chain-json-rpc = { path = "crates/json-rpc" }
-mojave-chain-node = { path = "crates/node" }
-mojave-chain-types = { path = "crates/types" }
 mojave-chain-full-node = { path = "crates/full-node" }
-
-bytes = "1.7"
-
-
-futures = "0.3"
-serde = { version = "1", default-features = false }
 tokio = { version = "1", default-features = false }
-tokio-stream = "0.1"
-toml = "0.8"
 tracing = "0.1"
 tracing-subscriber = "0.3"
 trait-variant = "0.1"
