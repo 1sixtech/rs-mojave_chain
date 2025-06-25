@@ -8,7 +8,7 @@ async fn main() -> Result<()> {
 
     init_logging(&opts);
 
-    tracing::info!(opts = ?opts, command = ?command, "Starting Mojave node");
+    tracing::debug!(opts = ?opts, command = ?command, "Starting Mojave node");
 
     command.run().await?;
 

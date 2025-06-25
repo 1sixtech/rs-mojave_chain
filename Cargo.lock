@@ -2869,8 +2869,13 @@ dependencies = [
  "anyhow",
  "clap",
  "ethrex",
+ "ethrex-common",
+ "ethrex-p2p",
+ "ethrex-storage",
+ "ethrex-vm",
  "mojave-chain-full-node",
  "mojave-chain-json-rpc",
+ "mojave-chain-utils",
  "tokio",
  "tracing",
  "tracing-subscriber",
@@ -2897,6 +2902,10 @@ dependencies = [
  "tracing",
  "trait-variant",
 ]
+
+[[package]]
+name = "mojave-chain-utils"
+version = "0.1.0"
 
 [[package]]
 name = "native-tls"
