@@ -14,3 +14,6 @@ clap = { version = "4.5", features = ["derive"] }
 # error handling
 thiserror = "2"
 anyhow = { version = "1.0" }
+
+# ethrex
+ethrex = { git = "https://github.com/1sixtech/ethrex", branch = "main" }

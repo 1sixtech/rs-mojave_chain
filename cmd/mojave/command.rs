@@ -2,17 +2,20 @@ use anyhow::Result;
 use clap::Subcommand;
 use mojave_chain_json_rpc::{config::RpcConfig, server::RpcServer};
 
-use crate::options::Options;
+use crate::options::Opts;
 
 #[derive(Subcommand, Debug)]
 pub enum Command {
     #[command(name = "full-node", about = "Run a full node")]
     FullNode {
         #[command(flatten)]
-        opts: Options,
+        opts: Opts,
     },
     #[command(name = "sequencer", about = "Run a sequencer")]
-    Sequencer,
+    Sequencer {
+        #[command(flatten)]
+        opts: Opts,
+    },
 }
 
 impl Command {
@@ -32,7 +35,7 @@ impl Command {
                     }
                 }
             }
-            Command::Sequencer => todo!(),
+            Command::Sequencer { .. } => todo!(),
         }
         Ok(())
     }

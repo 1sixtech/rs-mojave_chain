@@ -17,6 +17,8 @@ mojave-chain-json-rpc = { workspace = true }
 
 tokio = { workspace = true, features = ["full"] }
 
+# ethrex
+ethrex = { workspace = true }
 
 # logging
 tracing = { workspace = true }
