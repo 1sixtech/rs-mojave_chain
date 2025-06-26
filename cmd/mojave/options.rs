@@ -1,14 +1,14 @@
 use anyhow::anyhow;
 use clap::{ArgAction, Parser};
-use ethrex::utils;
-use ethrex_p2p::sync::SyncMode;
+use ethrex::{l2::SequencerOptions, utils};
+use ethrex_p2p::{sync::SyncMode, types::Node};
 use ethrex_vm::EvmEngine;
 use mojave_chain_json_rpc::config::RpcConfig;
 use secp256k1::SecretKey;
 use std::fmt;
 use tracing::Level;
 
-use crate::{network::Network, DEFAULT_DATADIR};
+use crate::{networks::Network, DEFAULT_DATADIR};
 
 pub fn parse_evm_level(s: &str) -> anyhow::Result<EvmEngine> {
     EvmEngine::try_from(s.to_owned()).map_err(|e| anyhow!(e))
@@ -43,8 +43,8 @@ pub struct Opts {
         value_parser = clap::value_parser!(Network),
     )]
     pub network: Network,
-    // #[arg(long = "bootnodes", value_parser = clap::value_parser!(Node), value_name = "BOOTNODE_LIST", value_delimiter = ',', num_args = 1.., help = "Comma separated enode URLs for P2P discovery bootstrap.", help_heading = "P2P options")]
-    // pub bootnodes: Vec<Node>,
+    #[arg(long = "bootnodes", value_parser = clap::value_parser!(Node), value_name = "BOOTNODE_LIST", value_delimiter = ',', num_args = 1.., help = "Comma separated enode URLs for P2P discovery bootstrap.", help_heading = "P2P options")]
+    pub bootnodes: Vec<Node>,
     #[arg(long = "syncmode", default_value = "full", value_name = "SYNC_MODE", value_parser = utils::parse_sync_mode, help = "The way in which the node will sync its state.", long_help = "Can be either \"full\" or \"snap\" with \"full\" as default value.", help_heading = "P2P options")]
     pub syncmode: SyncMode,
     #[arg(
@@ -197,6 +197,8 @@ pub struct Opts {
         help_heading = "P2P options"
     )]
     pub discovery_port: String,
+    #[command(flatten)]
+    pub sequencer_opts: SequencerOptions,
 }
 
 impl Default for Opts {
@@ -214,7 +216,7 @@ impl Default for Opts {
             discovery_addr: Default::default(),
             discovery_port: Default::default(),
             network: Network::Mainnet,
-            // bootnodes: Default::default(),
+            bootnodes: Default::default(),
             datadir: Default::default(),
             syncmode: Default::default(),
             sponsorable_addresses_file_path: None,
@@ -230,6 +232,7 @@ impl Default for Opts {
             force: false,
             ws_port: 8546,
             ws_host: "0.0.0.0".to_string(),
+            sequencer_opts: SequencerOptions::default(),
         }
     }
 }
@@ -247,7 +250,7 @@ impl fmt::Debug for Opts {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Options")
             .field("network", &self.network)
-            // .field("bootnodes", &self.bootnodes)
+            .field("bootnodes", &self.bootnodes)
             .field("datadir", &self.datadir)
             .field("force", &self.force)
             .field("syncmode", &self.syncmode)

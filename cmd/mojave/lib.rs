@@ -1,7 +1,7 @@
 pub mod cli;
 pub mod command;
 pub mod logging;
-pub mod network;
+pub mod networks;
 pub mod options;
 pub(crate) mod version;
 

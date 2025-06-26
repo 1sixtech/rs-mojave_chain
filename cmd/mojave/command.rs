@@ -1,16 +1,30 @@
+use std::{
+    fs,
+    future::IntoFuture,
+    io,
+    net::{Ipv4Addr, SocketAddr, ToSocketAddrs},
+    path::PathBuf,
+    sync::Arc,
+    time::Duration,
+};
+
 use anyhow::Result;
 use clap::Subcommand;
 use ethrex::{
     initializers::{
         get_local_node_record, get_signer, init_blockchain, init_rollup_store, init_store,
     },
-    utils::{get_client_version, read_jwtsecret_file},
+    utils::{
+        get_client_version, read_jwtsecret_file, read_node_config_file, store_node_config_file,
+        NodeConfigFile,
+    },
 };
 use ethrex_blockchain::Blockchain;
 use ethrex_common::Address;
+use ethrex_l2::SequencerConfig;
 use ethrex_p2p::{
     kademlia::KademliaTable,
-    network::{peer_table, public_key_from_signing_key},
+    network::{peer_table, public_key_from_signing_key, P2PContext},
     peer_handler::PeerHandler,
     sync_manager::SyncManager,
     types::{Node, NodeRecord},
@@ -21,15 +35,101 @@ use ethrex_vm::EvmEngine;
 use k256::ecdsa::SigningKey;
 use local_ip_address::local_ip;
 use mojave_chain_utils::resolve_datadir;
-use std::{
-    fs, io,
-    net::{Ipv4Addr, SocketAddr, ToSocketAddrs},
-    sync::Arc,
-};
 use tokio::sync::Mutex;
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
-use crate::options::Opts;
+use crate::{
+    networks::{self, Network},
+    options::Opts,
+};
+
+pub fn get_bootnodes(opts: &Opts, network: &Network, data_dir: &str) -> Vec<Node> {
+    let mut bootnodes: Vec<Node> = opts.bootnodes.clone();
+
+    match network {
+        Network::Mainnet => {
+            tracing::info!("Adding mainnet preset bootnodes");
+            bootnodes.extend(networks::MAINNET_BOOTNODES.clone());
+        }
+        Network::Testnet => {
+            tracing::info!("Adding testnet preset bootnodes");
+            bootnodes.extend(networks::TESTNET_BOOTNODES.clone());
+        }
+        _ => {}
+    }
+
+    if bootnodes.is_empty() {
+        tracing::warn!(
+            "No bootnodes specified. This node will not be able to connect to the network."
+        );
+    }
+
+    let config_file = PathBuf::from(data_dir.to_owned() + "/node_config.json");
+
+    tracing::info!("Reading known peers from config file {:?}", config_file);
+
+    match read_node_config_file(config_file) {
+        Ok(ref mut config) => bootnodes.append(&mut config.known_peers),
+        Err(e) => tracing::error!("Could not read from peers file: {e}"),
+    };
+
+    bootnodes
+}
+
+#[allow(clippy::too_many_arguments)]
+pub async fn init_network(
+    opts: &Opts,
+    network: &Network,
+    data_dir: &str,
+    local_p2p_node: Node,
+    local_node_record: Arc<Mutex<NodeRecord>>,
+    signer: SigningKey,
+    peer_table: Arc<Mutex<KademliaTable>>,
+    store: Store,
+    tracker: TaskTracker,
+    blockchain: Arc<Blockchain>,
+) {
+    if opts.dev {
+        tracing::error!("Binary wasn't built with The feature flag `dev` enabled.");
+        panic!(
+            "Build the binary with the `dev` feature in order to use the `--dev` cli's argument."
+        );
+    }
+
+    let bootnodes = get_bootnodes(opts, network, data_dir);
+
+    let context = P2PContext::new(
+        local_p2p_node,
+        local_node_record,
+        tracker.clone(),
+        signer,
+        peer_table.clone(),
+        store,
+        blockchain,
+        get_client_version(),
+    );
+
+    context.set_fork_id().await.expect("Set fork id");
+
+    ethrex_p2p::start_network(context, bootnodes)
+        .await
+        .expect("Network starts");
+
+    tracker.spawn(ethrex_p2p::periodically_show_peer_stats(peer_table.clone()));
+}
+
+pub fn init_metrics(opts: &Opts, tracker: TaskTracker) {
+    tracing::info!(
+        "Starting metrics server on {}:{}",
+        opts.metrics_addr,
+        opts.metrics_port
+    );
+    let metrics_api = ethrex_metrics::api::start_prometheus_metrics_api(
+        opts.metrics_addr.clone(),
+        opts.metrics_port.clone(),
+    );
+    tracker.spawn(metrics_api);
+}
 
 pub fn parse_socket_addr(addr: &str, port: &str) -> io::Result<SocketAddr> {
     // NOTE: this blocks until hostname can be resolved
@@ -89,7 +189,7 @@ pub fn get_valid_delegation_addresses(opts: &Opts) -> Vec<Address> {
         return Vec::new();
     };
     let addresses: Vec<Address> = fs::read_to_string(path)
-        .unwrap_or_else(|_| panic!("Failed to load file {}", path))
+        .unwrap_or_else(|_| panic!("Failed to load file {path}"))
         .lines()
         .filter(|line| !line.trim().is_empty())
         .map(|line| line.to_string().parse::<Address>())
@@ -101,6 +201,7 @@ pub fn get_valid_delegation_addresses(opts: &Opts) -> Vec<Address> {
     addresses
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn init_rpc_api(
     opts: &Opts,
     peer_table: Arc<Mutex<KademliaTable>>,
@@ -191,7 +292,7 @@ impl Command {
 
                 let cancel_token = tokio_util::sync::CancellationToken::new();
 
-                let rpc_api = init_rpc_api(
+                init_rpc_api(
                     &opts,
                     peer_table.clone(),
                     local_p2p_node.clone(),
@@ -204,57 +305,55 @@ impl Command {
                 )
                 .await;
 
-                // // Initialize metrics if enabled
-                // if opts.node_opts.metrics_enabled {
-                //     init_metrics(&opts.node_opts, tracker.clone());
-                // }
+                // Initialize metrics if enabled
+                if opts.metrics_enabled {
+                    init_metrics(&opts, tracker.clone());
+                }
 
-                // if opts.node_opts.p2p_enabled {
-                //     init_network(
-                //         &opts.node_opts,
-                //         &network,
-                //         &data_dir,
-                //         local_p2p_node,
-                //         local_node_record.clone(),
-                //         signer,
-                //         peer_table.clone(),
-                //         store.clone(),
-                //         tracker.clone(),
-                //         blockchain.clone(),
-                //     )
-                //     .await;
-                // } else {
-                //     info!("P2P is disabled");
-                // }
+                if opts.p2p_enabled {
+                    init_network(
+                        &opts,
+                        &opts.network,
+                        &data_dir,
+                        local_p2p_node,
+                        local_node_record.clone(),
+                        signer,
+                        peer_table.clone(),
+                        store.clone(),
+                        tracker.clone(),
+                        blockchain.clone(),
+                    )
+                    .await;
+                } else {
+                    tracing::info!("P2P is disabled");
+                }
 
-                // let l2_sequencer_cfg = SequencerConfig::from(opts.sequencer_opts);
+                let l2_sequencer_cfg = SequencerConfig::from(opts.sequencer_opts);
 
-                // let l2_sequencer = ethrex_l2::start_l2(
-                //     store,
-                //     rollup_store,
-                //     blockchain,
-                //     l2_sequencer_cfg,
-                //     format!(
-                //         "http://{}:{}",
-                //         opts.node_opts.http_addr, opts.node_opts.http_port
-                //     ),
-                // )
-                // .into_future();
+                let l2_sequencer = ethrex_l2::start_l2(
+                    store,
+                    rollup_store,
+                    blockchain,
+                    l2_sequencer_cfg,
+                    #[cfg(feature = "metrics")]
+                    format!("http://{}:{}", opts.http_addr, opts.http_port),
+                )
+                .into_future();
 
-                // tracker.spawn(l2_sequencer);
+                tracker.spawn(l2_sequencer);
 
-                // tokio::select! {
-                //     _ = tokio::signal::ctrl_c() => {
-                //         tracing::info!("Server shut down started...");
-                //         let node_config_path = PathBuf::from(data_dir + "/node_config.json");
-                //         tracing::info!("Storing config at {:?}...", node_config_path);
-                //         cancel_token.cancel();
-                //         let node_config = NodeConfigFile::new(peer_table, local_node_record.lock().await.clone()).await;
-                //         store_node_config_file(node_config, node_config_path).await;
-                //         tokio::time::sleep(Duration::from_secs(1)).await;
-                //         tracing::info!("Server shutting down!");
-                //     }
-                // }
+                tokio::select! {
+                    _ = tokio::signal::ctrl_c() => {
+                        tracing::info!("Server shut down started...");
+                        let node_config_path = PathBuf::from(data_dir + "/node_config.json");
+                        tracing::info!("Storing config at {:?}...", node_config_path);
+                        cancel_token.cancel();
+                        let node_config = NodeConfigFile::new(peer_table, local_node_record.lock().await.clone()).await;
+                        store_node_config_file(node_config, node_config_path).await;
+                        tokio::time::sleep(Duration::from_secs(1)).await;
+                        tracing::info!("Server shutting down!");
+                    }
+                }
             }
             Command::Sequencer { .. } => todo!(),
         }
