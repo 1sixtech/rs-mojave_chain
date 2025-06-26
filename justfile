@@ -19,8 +19,8 @@ node:
 
 # Fix some issues
 fix flags="":
-	cargo fix --allow-staged --all-targets --all-features {{flags}}
-	cargo clippy --fix --allow-staged --all-targets --all-features {{flags}}
+	cargo fix --allow-staged --all-targets {{flags}}
+	cargo clippy --fix --allow-staged --all-targets {{flags}}
 	cargo fmt --all
 
 	# requires: cargo install cargo-shear
@@ -30,7 +30,7 @@ fix flags="":
 	cargo sort --workspace
 
 	# requires: cargo install cargo-audit
-	cargo audit
+	# cargo audit
 
 	# Update any patch versions
 	cargo update

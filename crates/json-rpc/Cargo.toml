@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-jsonrpsee = { version = "0.24", features = ["server"] }
 hyper = "1.6.0"
+jsonrpsee = { version = "0.24", features = ["server"] }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 tower = "0.4"

@@ -1,58 +1,56 @@
 [workspace]
-members = ["cmd/mojave", "crates/json-rpc", "crates/full-node", "crates/utils"]
+members = ["cmd/mojave", "crates/full-node", "crates/json-rpc", "crates/utils"]
 resolver = "2"
 
 [workspace.dependencies]
-mojave-chain-json-rpc = { path = "crates/json-rpc" }
-mojave-chain-full-node = { path = "crates/full-node" }
-mojave-chain-utils = { path = "crates/utils" }
-
-tokio = { version = "1", default-features = false }
-tokio-util = { version = "0.7", default-features = false }
-tracing = "0.1"
-tracing-subscriber = "0.3"
-trait-variant = "0.1"
-clap = { version = "4.5", features = ["derive"] }
-
-serde_json = "1.0"
-
-# error handling
-thiserror = "2"
 anyhow = { version = "1.0" }
-lazy_static = "1.5.0"
+clap = { version = "4.5", features = ["derive"] }
 
 # ethrex
 ethrex = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", features = [
   "l2",
 ] }
-ethrex-vm = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", features = [
+ethrex-blockchain = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", features = [
+  "l2",
+] }
+ethrex-common = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f" }
+ethrex-l2 = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", features = [
+  "l2",
+] }
+ethrex-metrics = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", features = [
+  "l2",
+] }
+ethrex-p2p = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f" }
+ethrex-rpc = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", features = [
   "l2",
 ] }
 ethrex-storage = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f" }
 ethrex-storage-rollup = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", features = [
   "l2",
 ] }
-ethrex-l2 = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", features = [
+ethrex-vm = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", features = [
   "l2",
 ] }
-ethrex-p2p = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f" }
-ethrex-common = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f" }
-ethrex-rpc = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", features = [
-  "l2",
-] }
-ethrex-blockchain = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", features = [
-  "l2",
-] }
-ethrex-metrics = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", features = [
-  "l2",
-] }
-
+lazy_static = "1.5.0"
+mojave-chain-json-rpc = { path = "crates/json-rpc" }
+mojave-chain-utils = { path = "crates/utils" }
 
 secp256k1 = { version = "0.29.1", default-features = false, features = [
   "global-context",
   "recovery",
   "rand",
 ] }
+
+serde_json = "1.0"
+
+# error handling
+thiserror = "2"
+
+tokio = { version = "1", default-features = false }
+tokio-util = { version = "0.7", default-features = false }
+tracing = "0.1"
+tracing-subscriber = "0.3"
+trait-variant = "0.1"
 
 [patch.crates-io]
 secp256k1 = { git = "https://github.com/sp1-patches/rust-secp256k1", tag = "patch-0.29.1-sp1-5.0.0" }
