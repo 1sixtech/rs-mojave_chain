@@ -10,6 +10,7 @@ node:
     cargo build --bin mojave
 
     cargo run --bin mojave -- full-node \
+    --network ./test_data/genesis.json \
     --l1.bridge-address $(grep ETHREX_WATCHER_BRIDGE_ADDRESS .env | cut -d= -f2) \
     --block-producer.coinbase-address 0x0007a881CD95B1484fca47615B64803dad620C8d \
     --committer.l1-private-key 0x385c546456b6a603a1cfcaa9ec9494ba4832da08dd6bcf4de9a71e4a01b74924 \
