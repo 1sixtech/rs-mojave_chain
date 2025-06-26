@@ -1,10 +1,9 @@
+use tracing::Level;
 use tracing_subscriber::{filter::Directive, EnvFilter, FmtSubscriber};
 
-use crate::options::Opts;
-
-pub fn init_logging(opts: &Opts) {
+pub fn init_logging(log_level: Level) {
     let log_filter = EnvFilter::builder()
-        .with_default_directive(Directive::from(opts.log_level))
+        .with_default_directive(Directive::from(log_level))
         .from_env_lossy();
     let subscriber = FmtSubscriber::builder()
         .with_env_filter(log_filter)

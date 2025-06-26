@@ -6,7 +6,6 @@ use ethrex_vm::EvmEngine;
 use mojave_chain_json_rpc::config::RpcConfig;
 use secp256k1::SecretKey;
 use std::fmt;
-use tracing::Level;
 
 use crate::{networks::Network, DEFAULT_DATADIR};
 
@@ -15,7 +14,7 @@ pub fn parse_evm_level(s: &str) -> anyhow::Result<EvmEngine> {
 }
 
 #[derive(Parser)]
-pub struct Opts {
+pub struct Options {
     #[arg(
         long = "ws.port",
         default_value_t = 8546,
@@ -116,14 +115,6 @@ pub struct Opts {
         env = "ETHREX_EVM")]
     pub evm: EvmEngine,
     #[arg(
-        long = "log.level",
-        default_value_t = Level::INFO,
-        value_name = "LOG_LEVEL",
-        help = "The verbosity level used for logs.",
-        long_help = "Possible values: info, debug, trace, warn, error",
-        help_heading = "Node options")]
-    pub log_level: Level,
-    #[arg(
         long = "http.addr",
         default_value = "localhost",
         value_name = "ADDRESS",
@@ -201,12 +192,11 @@ pub struct Opts {
     pub sequencer_opts: SequencerOptions,
 }
 
-impl Default for Opts {
+impl Default for Options {
     fn default() -> Self {
         Self {
             http_addr: Default::default(),
             http_port: Default::default(),
-            log_level: Level::INFO,
             authrpc_addr: Default::default(),
             authrpc_port: Default::default(),
             authrpc_jwtsecret: Default::default(),
@@ -237,8 +227,8 @@ impl Default for Opts {
     }
 }
 
-impl From<Opts> for RpcConfig {
-    fn from(options: Opts) -> Self {
+impl From<Options> for RpcConfig {
+    fn from(options: Options) -> Self {
         Self {
             rpc_address: format!("{}:{}", options.http_addr, options.http_port),
             websocket_address: format!("{}:{}", options.ws_host, options.ws_port),
@@ -246,7 +236,7 @@ impl From<Opts> for RpcConfig {
     }
 }
 
-impl fmt::Debug for Opts {
+impl fmt::Debug for Options {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Options")
             .field("network", &self.network)
@@ -259,7 +249,6 @@ impl fmt::Debug for Opts {
             .field("metrics_enabled", &self.metrics_enabled)
             .field("dev", &self.dev)
             .field("evm", &self.evm)
-            .field("log_level", &self.log_level)
             .field("http_addr", &self.http_addr)
             .field("http_port", &self.http_port)
             .field("websocket_host", &self.ws_host)

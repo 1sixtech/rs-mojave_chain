@@ -5,9 +5,17 @@ default:
   just --list
 
 node:
+    export $(cat .env | xargs)
+
     cargo build --bin mojave
 
-    cargo run --bin mojave -- full-node
+    cargo run --bin mojave -- full-node \
+    --l1.bridge-address $(grep ETHREX_WATCHER_BRIDGE_ADDRESS .env | cut -d= -f2) \
+    --block-producer.coinbase-address 0x0007a881CD95B1484fca47615B64803dad620C8d \
+    --committer.l1-private-key 0x385c546456b6a603a1cfcaa9ec9494ba4832da08dd6bcf4de9a71e4a01b74924 \
+    --l1.on-chain-proposer-address $(grep ETHREX_COMMITTER_ON_CHAIN_PROPOSER_ADDRESS .env | cut -d= -f2) \
+    --proof-coordinator.l1-private-key 0x39725efee3fb28614de3bacaffe4cc4bd8c436257e2c8bb887c4b5c4be45e76d
+
 
 # Fix some issues
 fix flags="":

@@ -40,10 +40,10 @@ use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
 use crate::{
     networks::{self, Network},
-    options::Opts,
+    options::Options,
 };
 
-pub fn get_bootnodes(opts: &Opts, network: &Network, data_dir: &str) -> Vec<Node> {
+pub fn get_bootnodes(opts: &Options, network: &Network, data_dir: &str) -> Vec<Node> {
     let mut bootnodes: Vec<Node> = opts.bootnodes.clone();
 
     match network {
@@ -78,7 +78,7 @@ pub fn get_bootnodes(opts: &Opts, network: &Network, data_dir: &str) -> Vec<Node
 
 #[allow(clippy::too_many_arguments)]
 pub async fn init_network(
-    opts: &Opts,
+    opts: &Options,
     network: &Network,
     data_dir: &str,
     local_p2p_node: Node,
@@ -118,7 +118,7 @@ pub async fn init_network(
     tracker.spawn(ethrex_p2p::periodically_show_peer_stats(peer_table.clone()));
 }
 
-pub fn init_metrics(opts: &Opts, tracker: TaskTracker) {
+pub fn init_metrics(opts: &Options, tracker: TaskTracker) {
     tracing::info!(
         "Starting metrics server on {}:{}",
         opts.metrics_addr,
@@ -142,7 +142,7 @@ pub fn parse_socket_addr(addr: &str, port: &str) -> io::Result<SocketAddr> {
         ))
 }
 
-pub fn get_local_p2p_node(opts: &Opts, signer: &SigningKey) -> Node {
+pub fn get_local_p2p_node(opts: &Options, signer: &SigningKey) -> Node {
     let udp_socket_addr = parse_socket_addr(&opts.discovery_addr, &opts.discovery_port)
         .expect("Failed to parse discovery address and port");
     let tcp_socket_addr =
@@ -173,17 +173,17 @@ pub fn get_local_p2p_node(opts: &Opts, signer: &SigningKey) -> Node {
     node
 }
 
-pub fn get_authrpc_socket_addr(opts: &Opts) -> SocketAddr {
+pub fn get_authrpc_socket_addr(opts: &Options) -> SocketAddr {
     parse_socket_addr(&opts.authrpc_addr, &opts.authrpc_port)
         .expect("Failed to parse authrpc address and port")
 }
 
-pub fn get_http_socket_addr(opts: &Opts) -> SocketAddr {
+pub fn get_http_socket_addr(opts: &Options) -> SocketAddr {
     parse_socket_addr(&opts.http_addr, &opts.http_port)
         .expect("Failed to parse http address and port")
 }
 
-pub fn get_valid_delegation_addresses(opts: &Opts) -> Vec<Address> {
+pub fn get_valid_delegation_addresses(opts: &Options) -> Vec<Address> {
     let Some(ref path) = opts.sponsorable_addresses_file_path else {
         tracing::warn!("No valid addresses provided, ethrex_SendTransaction will always fail");
         return Vec::new();
@@ -203,7 +203,7 @@ pub fn get_valid_delegation_addresses(opts: &Opts) -> Vec<Address> {
 
 #[allow(clippy::too_many_arguments)]
 pub async fn init_rpc_api(
-    opts: &Opts,
+    opts: &Options,
     peer_table: Arc<Mutex<KademliaTable>>,
     local_p2p_node: Node,
     local_node_record: NodeRecord,
@@ -249,12 +249,12 @@ pub enum Command {
     #[command(name = "full-node", about = "Run a full node")]
     FullNode {
         #[command(flatten)]
-        opts: Opts,
+        opts: Options,
     },
     #[command(name = "sequencer", about = "Run a sequencer")]
     Sequencer {
         #[command(flatten)]
-        opts: Opts,
+        opts: Options,
     },
 }
 
