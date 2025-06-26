@@ -1,7 +1,10 @@
 use anyhow::anyhow;
 use clap::{ArgAction, Parser};
+use ethrex::utils;
+use ethrex_p2p::sync::SyncMode;
 use ethrex_vm::EvmEngine;
 use mojave_chain_json_rpc::config::RpcConfig;
+use secp256k1::SecretKey;
 use std::fmt;
 use tracing::Level;
 
@@ -42,6 +45,18 @@ pub struct Opts {
     pub network: Network,
     // #[arg(long = "bootnodes", value_parser = clap::value_parser!(Node), value_name = "BOOTNODE_LIST", value_delimiter = ',', num_args = 1.., help = "Comma separated enode URLs for P2P discovery bootstrap.", help_heading = "P2P options")]
     // pub bootnodes: Vec<Node>,
+    #[arg(long = "syncmode", default_value = "full", value_name = "SYNC_MODE", value_parser = utils::parse_sync_mode, help = "The way in which the node will sync its state.", long_help = "Can be either \"full\" or \"snap\" with \"full\" as default value.", help_heading = "P2P options")]
+    pub syncmode: SyncMode,
+    #[arg(
+        long = "sponsorable-addresses",
+        value_name = "SPONSORABLE_ADDRESSES_PATH",
+        help = "Path to a file containing addresses of contracts to which ethrex_SendTransaction should sponsor txs",
+        help_heading = "L2 options"
+    )]
+    pub sponsorable_addresses_file_path: Option<String>,
+    //TODO: make optional when the the sponsored feature is complete
+    #[arg(long, default_value = "0xffd790338a2798b648806fc8635ac7bf14af15425fed0c8f25bcc5febaa9b192", value_parser = utils::parse_private_key, env = "SPONSOR_PRIVATE_KEY", help = "The private key of ethrex L2 transactions sponsor.", help_heading = "L2 options")]
+    pub sponsor_private_key: SecretKey,
     #[arg(
         long = "datadir",
         value_name = "DATABASE_DIRECTORY",
@@ -182,16 +197,39 @@ pub struct Opts {
         help_heading = "P2P options"
     )]
     pub discovery_port: String,
-    #[command(flatten)]
-    pub options: ethrex::cli::Options,
 }
 
 impl Default for Opts {
     fn default() -> Self {
         Self {
+            http_addr: Default::default(),
+            http_port: Default::default(),
+            log_level: Level::INFO,
+            authrpc_addr: Default::default(),
+            authrpc_port: Default::default(),
+            authrpc_jwtsecret: Default::default(),
+            p2p_enabled: Default::default(),
+            p2p_addr: Default::default(),
+            p2p_port: Default::default(),
+            discovery_addr: Default::default(),
+            discovery_port: Default::default(),
+            network: Network::Mainnet,
+            // bootnodes: Default::default(),
+            datadir: Default::default(),
+            syncmode: Default::default(),
+            sponsorable_addresses_file_path: None,
+            sponsor_private_key: utils::parse_private_key(
+                "0xffd790338a2798b648806fc8635ac7bf14af15425fed0c8f25bcc5febaa9b192",
+            )
+            .unwrap(),
+            metrics_addr: "0.0.0.0".to_owned(),
+            metrics_port: Default::default(),
+            metrics_enabled: Default::default(),
+            dev: Default::default(),
+            evm: Default::default(),
+            force: false,
             ws_port: 8546,
             ws_host: "0.0.0.0".to_string(),
-            options: ethrex::cli::Options::default(),
         }
     }
 }
@@ -199,10 +237,7 @@ impl Default for Opts {
 impl From<Opts> for RpcConfig {
     fn from(options: Opts) -> Self {
         Self {
-            rpc_address: format!(
-                "{}:{}",
-                options.options.http_addr, options.options.http_port
-            ),
+            rpc_address: format!("{}:{}", options.http_addr, options.http_port),
             websocket_address: format!("{}:{}", options.ws_host, options.ws_port),
         }
     }
@@ -211,29 +246,29 @@ impl From<Opts> for RpcConfig {
 impl fmt::Debug for Opts {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Options")
-            .field("network", &self.options.network)
-            .field("bootnodes", &self.options.bootnodes)
-            .field("datadir", &self.options.datadir)
-            .field("force", &self.options.force)
-            .field("syncmode", &self.options.syncmode)
-            .field("metrics_addr", &self.options.metrics_addr)
-            .field("metrics_port", &self.options.metrics_port)
-            .field("metrics_enabled", &self.options.metrics_enabled)
-            .field("dev", &self.options.dev)
-            .field("evm", &self.options.evm)
-            .field("log_level", &self.options.log_level)
-            .field("http_addr", &self.options.http_addr)
-            .field("http_port", &self.options.http_port)
+            .field("network", &self.network)
+            // .field("bootnodes", &self.bootnodes)
+            .field("datadir", &self.datadir)
+            .field("force", &self.force)
+            .field("syncmode", &self.syncmode)
+            .field("metrics_addr", &self.metrics_addr)
+            .field("metrics_port", &self.metrics_port)
+            .field("metrics_enabled", &self.metrics_enabled)
+            .field("dev", &self.dev)
+            .field("evm", &self.evm)
+            .field("log_level", &self.log_level)
+            .field("http_addr", &self.http_addr)
+            .field("http_port", &self.http_port)
             .field("websocket_host", &self.ws_host)
             .field("websocket_port", &self.ws_port)
-            .field("authrpc_addr", &self.options.authrpc_addr)
-            .field("authrpc_port", &self.options.authrpc_port)
-            .field("authrpc_jwtsecret", &self.options.authrpc_jwtsecret)
-            .field("p2p_enabled", &self.options.p2p_enabled)
-            .field("p2p_addr", &self.options.p2p_addr)
-            .field("p2p_port", &self.options.p2p_port)
-            .field("discovery_addr", &self.options.discovery_addr)
-            .field("discovery_port", &self.options.discovery_port)
+            .field("authrpc_addr", &self.authrpc_addr)
+            .field("authrpc_port", &self.authrpc_port)
+            .field("authrpc_jwtsecret", &self.authrpc_jwtsecret)
+            .field("p2p_enabled", &self.p2p_enabled)
+            .field("p2p_addr", &self.p2p_addr)
+            .field("p2p_port", &self.p2p_port)
+            .field("discovery_addr", &self.discovery_addr)
+            .field("discovery_port", &self.discovery_port)
             .finish()
     }
 }
