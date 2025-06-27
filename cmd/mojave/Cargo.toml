@@ -13,7 +13,7 @@ path = "./mojave.rs"
 
 [features]
 default = []
-metrics = ["ethrex-blockchain/metrics", "ethrex-l2/metrics"]
+metrics = ["ethrex-blockchain/metrics", "ethrex-l2/metrics", "ethrex/metrics"]
 
 [dependencies]
 mojave-chain-utils = { workspace = true }
@@ -24,7 +24,7 @@ anyhow = { workspace = true }
 clap = { workspace = true, features = ["derive", "env", "string"] }
 
 # ethrex
-ethrex = { workspace = true, features = ["l2"] }
+ethrex = { workspace = true, features = ["libmdbx", "c-kzg", "blst", "l2"] }
 ethrex-blockchain = { workspace = true, features = ["l2"] }
 ethrex-l2 = { workspace = true, features = ["l2"] }
 ethrex-metrics = { workspace = true, features = ["l2"] }
