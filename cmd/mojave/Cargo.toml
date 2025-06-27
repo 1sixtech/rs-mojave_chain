@@ -16,6 +16,9 @@ default = []
 metrics = ["ethrex-blockchain/metrics", "ethrex-l2/metrics"]
 
 [dependencies]
+mojave-chain-json-rpc = { workspace = true }
+mojave-chain-utils = { workspace = true }
+
 anyhow = { workspace = true }
 
 # misc
@@ -38,8 +41,6 @@ k256 = { version = "0.13.3", features = ["ecdh"] }
 lazy_static = { workspace = true }
 
 local-ip-address = { version = "0.6" }
-mojave-chain-json-rpc = { workspace = true }
-mojave-chain-utils = { workspace = true }
 secp256k1 = { workspace = true }
 
 serde_json = { workspace = true }

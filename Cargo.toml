@@ -1,5 +1,5 @@
 [workspace]
-members = ["cmd/mojave", "crates/full-node", "crates/json-rpc", "crates/utils"]
+members = ["cmd/mojave", "crates/utils"]
 resolver = "2"
 
 [workspace.dependencies]

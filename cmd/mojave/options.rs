@@ -3,7 +3,6 @@ use clap::{ArgAction, Parser};
 use ethrex::{l2::SequencerOptions, utils};
 use ethrex_p2p::{sync::SyncMode, types::Node};
 use ethrex_vm::EvmEngine;
-use mojave_chain_json_rpc::config::RpcConfig;
 use secp256k1::SecretKey;
 use std::fmt;
 
@@ -223,15 +222,6 @@ impl Default for Options {
             ws_port: 8546,
             ws_host: "0.0.0.0".to_string(),
             sequencer_opts: SequencerOptions::default(),
-        }
-    }
-}
-
-impl From<Options> for RpcConfig {
-    fn from(options: Options) -> Self {
-        Self {
-            rpc_address: format!("{}:{}", options.http_addr, options.http_port),
-            websocket_address: format!("{}:{}", options.ws_host, options.ws_port),
         }
     }
 }
