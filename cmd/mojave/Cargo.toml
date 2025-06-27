@@ -16,7 +16,6 @@ default = []
 metrics = ["ethrex-blockchain/metrics", "ethrex-l2/metrics"]
 
 [dependencies]
-mojave-chain-json-rpc = { workspace = true }
 mojave-chain-utils = { workspace = true }
 
 anyhow = { workspace = true }
@@ -25,23 +24,27 @@ anyhow = { workspace = true }
 clap = { workspace = true, features = ["derive", "env", "string"] }
 
 # ethrex
-ethrex = { workspace = true }
-ethrex-blockchain = { workspace = true }
+ethrex = { workspace = true, features = ["l2"] }
+ethrex-blockchain = { workspace = true, features = ["l2"] }
+ethrex-l2 = { workspace = true, features = ["l2"] }
+ethrex-metrics = { workspace = true, features = ["l2"] }
+ethrex-rpc = { workspace = true, features = ["l2"] }
+ethrex-storage-rollup = { workspace = true, features = ["l2"] }
+ethrex-vm = { workspace = true, features = ["l2"] }
 ethrex-common = { workspace = true }
-ethrex-l2 = { workspace = true }
-ethrex-metrics = { workspace = true }
 ethrex-p2p = { workspace = true }
-ethrex-rpc = { workspace = true }
 ethrex-storage = { workspace = true }
-ethrex-storage-rollup = { workspace = true }
-ethrex-vm = { workspace = true }
 
 k256 = { version = "0.13.3", features = ["ecdh"] }
 
 lazy_static = { workspace = true }
 
 local-ip-address = { version = "0.6" }
-secp256k1 = { workspace = true }
+secp256k1 = { workspace = true, features = [
+  "global-context",
+  "recovery",
+  "rand",
+] }
 
 serde_json = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
