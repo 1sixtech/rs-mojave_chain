@@ -1,0 +1,23 @@
+[package]
+name = "mojave-l2"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ethrex-blockchain = { workspace = true, features = ["l2"] }
+ethrex-storage-rollup = { workspace = true, features = ["l2"] }
+ethrex-common = { workspace = true }
+ethrex-storage = { workspace = true }
+ethrex-l2 = { workspace = true }
+
+tracing = { workspace = true }
+
+thiserror = { workspace = true }
+
+# concurrency
+spawned-concurrency = { git = "https://github.com/lambdaclass/spawned.git", tag = "v0.1.0-alpha" }
+spawned-rt = { git = "https://github.com/lambdaclass/spawned.git", tag = "v0.1.0-alpha" }
+
+[features]
+default = ["metrics"]
+metrics = []
