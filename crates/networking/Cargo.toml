@@ -1,0 +1,20 @@
+[package]
+name = "mojave-networking"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = "0.8.1"
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+tower-http = { version = "0.6.2", features = ["cors"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# ethrex
+ethrex-blockchain = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
+ethrex-common = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
+ethrex-p2p = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
+ethrex-rpc = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
+ethrex-storage = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
+ethrex-storage-rollup = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
