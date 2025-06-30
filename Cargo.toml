@@ -1,5 +1,11 @@
 [workspace]
-members = ["cmd/mojave", "crates/utils", "crates/l2"]
+members = [
+    "cmd/mojave",
+    "crates/utils",
+    "crates/l2",
+    "crates/sequencer",
+    "crates/full-node",
+]
 resolver = "2"
 
 [workspace.dependencies]
@@ -7,17 +13,19 @@ anyhow = { version = "1.0" }
 clap = { version = "4.5", features = ["derive"] }
 
 # ethrex
-ethrex = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", default-features = false }
-ethrex-blockchain = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", default-features = false }
-ethrex-l2 = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", default-features = false }
-ethrex-metrics = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", default-features = false }
-ethrex-rpc = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", default-features = false }
-ethrex-storage-rollup = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", default-features = false }
-ethrex-vm = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", default-features = false }
-ethrex-common = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", default-features = false }
-ethrex-p2p = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", default-features = false }
-ethrex-storage = { git = "https://github.com/1sixtech/ethrex", rev = "5a39b693d285690b479657d69b0939f03bd5075f", default-features = false }
+ethrex = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d", default-features = false }
+ethrex-blockchain = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d", default-features = false }
+ethrex-l2 = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d", default-features = false }
+ethrex-metrics = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d", default-features = false }
+ethrex-rpc = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d", default-features = false }
+ethrex-storage-rollup = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d", default-features = false }
+ethrex-vm = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d", default-features = false }
+ethrex-common = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d", default-features = false }
+ethrex-p2p = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d", default-features = false }
+ethrex-storage = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d", default-features = false }
 lazy_static = "1.5.0"
+
+# mojave
 mojave-chain-utils = { path = "crates/utils" }
 
 secp256k1 = { version = "0.29.1", default-features = false }
