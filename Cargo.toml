@@ -1,5 +1,11 @@
 [workspace]
-members = ["cmd/mojave", "crates/utils"]
+members = [
+    "cmd/mojave",
+    # "crates/full-node",
+    "crates/networking",
+    # "crates/sequencer",
+    "crates/utils",
+]
 resolver = "2"
 
 [workspace.dependencies]
