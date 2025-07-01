@@ -1,7 +1,13 @@
 mod block;
 mod transaction;
+pub mod utils;
 
-use crate::sync::SyncClient;
+use crate::{
+    rpc::utils::{
+        RpcErr, RpcErrorResponse, RpcNamespace, RpcRequest, RpcRequestId, RpcSuccessResponse,
+    },
+    sync::SyncClient,
+};
 use axum::{Json, Router, extract::State, http::StatusCode, routing::post};
 use ethrex_blockchain::Blockchain;
 use ethrex_common::Bytes;
@@ -11,12 +17,12 @@ use ethrex_p2p::{
     types::{Node, NodeRecord},
 };
 use ethrex_rpc::{
-    GasTipEstimator, NodeData, RpcApiContext as L1Context, RpcErr, RpcNamespace, RpcRequestWrapper,
+    GasTipEstimator, NodeData, RpcApiContext as L1Context, RpcErrorMetadata,
     types::transaction::SendRawTransactionRequest,
-    utils::{RpcRequest, RpcRequestId},
 };
 use ethrex_storage::Store;
 use ethrex_storage_rollup::StoreRollup;
+use serde::Deserialize;
 use serde_json::Value;
 use std::{
     collections::HashMap,
@@ -29,6 +35,13 @@ use tower_http::cors::CorsLayer;
 use tracing::info;
 
 pub const FILTER_DURATION: Duration = Duration::from_secs(300);
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+pub enum RpcRequestWrapper {
+    Single(RpcRequest),
+    Multiple(Vec<RpcRequest>),
+}
 
 #[derive(Clone, Debug)]
 pub struct RpcApiContext {
@@ -108,7 +121,7 @@ pub async fn start_api(
         .with_state(context.clone());
     let http_listener = TcpListener::bind(http_addr)
         .await
-        .map_err(|error| RpcErr::Internal(error.to_string()))?;
+        .map_err(|error| RpcErr::EthrexRPC(ethrex_rpc::RpcErr::Internal(error.to_string())))?;
     let http_server = axum::serve(http_listener, http_router)
         .with_graceful_shutdown(ethrex_rpc::shutdown_signal())
         .into_future();
@@ -129,19 +142,17 @@ async fn handle_http_request(
     let res = match serde_json::from_str::<RpcRequestWrapper>(&body) {
         Ok(RpcRequestWrapper::Single(request)) => {
             let res = map_http_requests(&request, service_context).await;
-            ethrex_rpc::rpc_response(request.id, res).map_err(|_| StatusCode::BAD_REQUEST)?
+            rpc_response(request.id, res).map_err(|_| StatusCode::BAD_REQUEST)?
         }
         Ok(RpcRequestWrapper::Multiple(requests)) => {
             let mut responses = Vec::new();
             for req in requests {
                 let res = map_http_requests(&req, service_context.clone()).await;
-                responses.push(
-                    ethrex_rpc::rpc_response(req.id, res).map_err(|_| StatusCode::BAD_REQUEST)?,
-                );
+                responses.push(rpc_response(req.id, res).map_err(|_| StatusCode::BAD_REQUEST)?);
             }
             serde_json::to_value(responses).map_err(|_| StatusCode::BAD_REQUEST)?
         }
-        Err(_) => ethrex_rpc::rpc_response(
+        Err(_) => rpc_response(
             RpcRequestId::String("".to_string()),
             Err(ethrex_rpc::RpcErr::BadParams(
                 "Invalid request body".to_string(),
@@ -156,7 +167,10 @@ async fn handle_http_request(
 async fn map_http_requests(req: &RpcRequest, context: RpcApiContext) -> Result<Value, RpcErr> {
     match req.namespace() {
         Ok(RpcNamespace::Eth) => map_eth_requests(req, context).await,
-        Ok(_other_namespaces) => Err(RpcErr::Internal("Unsuppored namespace".to_owned())),
+        Ok(RpcNamespace::Mojave) => map_mojave_requests(req, context).await,
+        Ok(_other_namespaces) => Err(RpcErr::EthrexRPC(ethrex_rpc::RpcErr::Internal(
+            "Unsuppored namespace".to_owned(),
+        ))),
         // Ok(RpcNamespace::Admin) => map_admin_requests(req, context.l1_context),
         // Ok(RpcNamespace::Debug) => map_debug_requests(req, context.l1_context).await,
         // Ok(RpcNamespace::Web3) => map_web3_requests(req, context.l1_context),
@@ -169,9 +183,42 @@ async fn map_http_requests(req: &RpcRequest, context: RpcApiContext) -> Result<V
     }
 }
 
+pub async fn map_mojave_requests(
+    req: &RpcRequest,
+    context: RpcApiContext,
+) -> Result<Value, RpcErr> {
+    match req.method.as_str() {
+        "mojave_broadcastBlock" => unimplemented!(),
+        "mojave_forwardTransaction" => unimplemented!(),
+        _others => ethrex_rpc::map_eth_requests(&req.into(), context.l1_context)
+            .await
+            .map_err(RpcErr::EthrexRPC),
+    }
+}
+
 pub async fn map_eth_requests(req: &RpcRequest, context: RpcApiContext) -> Result<Value, RpcErr> {
     match req.method.as_str() {
         "eth_sendRawTransaction" => SendRawTransactionRequest::call(req, context).await,
-        _others => ethrex_rpc::map_eth_requests(req, context.l1_context).await,
+        _others => ethrex_rpc::map_eth_requests(&req.into(), context.l1_context)
+            .await
+            .map_err(RpcErr::EthrexRPC),
     }
+}
+
+pub fn rpc_response<E>(id: RpcRequestId, res: Result<Value, E>) -> Result<Value, RpcErr>
+where
+    E: Into<RpcErrorMetadata>,
+{
+    Ok(match res {
+        Ok(result) => serde_json::to_value(RpcSuccessResponse {
+            id,
+            jsonrpc: "2.0".to_string(),
+            result,
+        }),
+        Err(error) => serde_json::to_value(RpcErrorResponse {
+            id,
+            jsonrpc: "2.0".to_string(),
+            error: error.into(),
+        }),
+    }?)
 }

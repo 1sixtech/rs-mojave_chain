@@ -3,11 +3,6 @@ name = "mojave-networking"
 version = "0.1.0"
 edition = "2024"
 
-[features]
-default = ["sequencer"]
-full = []
-sequencer = []
-
 [dependencies]
 axum = "0.8.1"
 hex = "0.4.3"
@@ -24,3 +19,15 @@ ethrex-p2p = { workspace = true }
 ethrex-rpc = { workspace = true }
 ethrex-storage = { workspace = true }
 ethrex-storage-rollup = { workspace = true }
+ethrex-vm = { workspace = true }
+
+thiserror = { workspace = true }
+
+# serde
+serde = { workspace = true, features = ["derive"] }
+
+secp256k1 = { workspace = true, features = [
+  "global-context",
+  "recovery",
+  "rand",
+] }
