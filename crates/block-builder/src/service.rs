@@ -61,6 +61,7 @@ async fn handle_message(context: &BlockBuilderContext, message: Message) {
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 enum Message {
     BuildBlock(oneshot::Sender<Result<Block, BlockBuilderError>>),
     ExecuteBlock(Block, oneshot::Sender<Result<(), BlockBuilderError>>),
