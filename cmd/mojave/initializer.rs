@@ -228,8 +228,7 @@ pub async fn init_rpc_api(
     let client_version = get_client_version();
 
     // Create SyncClient
-    let sync_client =
-        SyncClient::new(mojave_networking::sync::SyncClientMode::FullNode { sequencer_addr });
+    let sync_client = SyncClient::new_full_node(sequencer_addr);
 
     let rpc_api = mojave_networking::rpc::start_api(
         http_addr,
