@@ -1,10 +1,13 @@
 [workspace]
 members = [
     "cmd/mojave",
+    "crates/block-builder",
     # "crates/full-node",
     "crates/networking",
+    "crates/syncer",
     # "crates/sequencer",
     "crates/utils",
+
 ]
 resolver = "2"
 
@@ -34,6 +37,7 @@ serde_json = "1.0"
 thiserror = "2"
 
 tokio = { version = "1", default-features = false }
+tokio-stream = { version = "0.1.17" }
 tokio-util = { version = "0.7", default-features = false }
 tracing = "0.1"
 tracing-subscriber = "0.3"
