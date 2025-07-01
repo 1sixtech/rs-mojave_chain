@@ -1,6 +1,6 @@
 use crate::BlockBuilderError;
 use ethrex_blockchain::{
-    Blockchain,
+    Blockchain, BlockchainType,
     constants::TX_GAS_COST,
     error::ChainError,
     fork_choice::apply_fork_choice,
@@ -285,8 +285,12 @@ impl BlockBuilderContext {
         let gas_limit = payload.header.gas_limit;
 
         debug!("Building payload");
-        let mut context =
-            PayloadBuildContext::new(payload, self.blockchain.evm_engine, &self.store)?;
+        let mut context = PayloadBuildContext::new(
+            payload,
+            self.blockchain.evm_engine,
+            &self.store,
+            BlockchainType::L2,
+        )?;
 
         if is_sequencer {
             self.fill_transactions(&mut context).await?;
@@ -398,13 +402,14 @@ impl BlockBuilderContext {
                 .get_account_info(latest_block_number, head_tx.tx.sender())
                 .await?;
 
-            if let Some(acc_info) = maybe_sender_acc_info {
-                if head_tx.nonce() < acc_info.nonce && !head_tx.is_privileged() {
-                    debug!("Removing transaction with nonce too low from mempool: {tx_hash:#x}");
-                    txs.pop();
-                    self.blockchain.remove_transaction_from_pool(&tx_hash)?;
-                    continue;
-                }
+            if let Some(acc_info) = maybe_sender_acc_info
+                && head_tx.nonce() < acc_info.nonce
+                && !head_tx.is_privileged()
+            {
+                debug!("Removing transaction with nonce too low from mempool: {tx_hash:#x}");
+                txs.pop();
+                self.blockchain.remove_transaction_from_pool(&tx_hash)?;
+                continue;
             }
 
             // Execute tx
@@ -503,7 +508,7 @@ impl BlockBuilderContext {
                     "REVM not supported for L2".to_string(),
                 )));
             }
-            Evm::LEVM { db } => {
+            Evm::LEVM { db, .. } => {
                 let transaction_backup = db.get_tx_backup().map_err(|e| {
                     BlockBuilderError::FailedToGetDataFrom(format!("TransactionBackup: {e}"))
                 })?;

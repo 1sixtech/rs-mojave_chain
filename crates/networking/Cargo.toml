@@ -13,9 +13,9 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 
 # ethrex
-ethrex-blockchain = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
-ethrex-common = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
-ethrex-p2p = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
-ethrex-rpc = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
-ethrex-storage = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
-ethrex-storage-rollup = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
+ethrex-blockchain = { workspace = true }
+ethrex-common = { workspace = true }
+ethrex-p2p = { workspace = true }
+ethrex-rpc = { workspace = true }
+ethrex-storage = { workspace = true }
+ethrex-storage-rollup = { workspace = true }

@@ -17,9 +17,10 @@ use ethrex_p2p::{
     types::{Node, NodeRecord},
 };
 use ethrex_storage::Store;
-use ethrex_storage_rollup::StoreRollup;
+use ethrex_storage_rollup::{EngineTypeRollup, StoreRollup};
 use k256::ecdsa::SigningKey;
 use local_ip_address::local_ip;
+use mojave_networking::sync::SyncClient;
 use tokio::sync::Mutex;
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
@@ -210,21 +211,66 @@ pub async fn init_rpc_api(
     )
     .await;
 
-    let rpc_api = ethrex_rpc::start_api(
-        get_http_socket_addr(opts),
-        get_authrpc_socket_addr(opts),
+    // Create SyncClient
+    let sync_client = SyncClient::new();
+
+    let http_addr = get_http_socket_addr(opts);
+    let authrpc_addr = get_authrpc_socket_addr(opts);
+    let jwt_secret = read_jwtsecret_file(&opts.authrpc_jwtsecret);
+    let client_version = get_client_version();
+    // let valid_delegation_addresses = get_valid_delegation_addresses(opts);
+
+    let rpc_api = mojave_networking::rpc::start_api(
+        http_addr,
+        authrpc_addr,
         store,
         blockchain,
-        read_jwtsecret_file(&opts.authrpc_jwtsecret),
+        jwt_secret,
         local_p2p_node,
         local_node_record,
         syncer,
         peer_handler,
-        get_client_version(),
-        get_valid_delegation_addresses(opts),
-        opts.sponsor_private_key,
+        client_version,
         rollup_store,
+        sync_client,
     );
 
+    // let rpc_api = ethrex_rpc::start_api(
+    //     get_http_socket_addr(opts),
+    //     get_authrpc_socket_addr(opts),
+    //     store,
+    //     blockchain,
+    //     read_jwtsecret_file(&opts.authrpc_jwtsecret),
+    //     local_p2p_node,
+    //     local_node_record,
+    //     syncer,
+    //     peer_handler,
+    //     get_client_version(),
+    //     get_valid_delegation_addresses(opts),
+    //     opts.sponsor_private_key,
+    //     rollup_store,
+    // );
+
     tracker.spawn(rpc_api);
+}
+
+pub async fn init_rollup_store(data_dir: &str) -> StoreRollup {
+    cfg_if::cfg_if! {
+        if #[cfg(feature = "sql")] {
+            let engine_type = EngineTypeRollup::SQL;
+        } else if #[cfg(feature = "redb")] {
+            let engine_type = EngineTypeRollup::RedB;
+        } else if #[cfg(feature = "libmdbx")] {
+            let engine_type = EngineTypeRollup::Libmdbx;
+        } else {
+            let engine_type = EngineTypeRollup::InMemory;
+        }
+    }
+    let rollup_store =
+        StoreRollup::new(data_dir, engine_type).expect("Failed to create StoreRollup");
+    rollup_store
+        .init()
+        .await
+        .expect("Failed to init rollup store");
+    rollup_store
 }

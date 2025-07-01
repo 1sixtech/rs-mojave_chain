@@ -3,11 +3,10 @@ use std::{future::IntoFuture, path::PathBuf, sync::Arc, time::Duration};
 use anyhow::Result;
 use clap::Subcommand;
 use ethrex::{
-    initializers::{
-        get_local_node_record, get_signer, init_blockchain, init_rollup_store, init_store,
-    },
+    initializers::{get_local_node_record, get_signer, init_blockchain, init_store},
     utils::{store_node_config_file, NodeConfigFile},
 };
+use ethrex_blockchain::BlockchainType;
 use ethrex_l2::SequencerConfig;
 use ethrex_p2p::network::peer_table;
 use ethrex_vm::EvmEngine;
@@ -16,7 +15,9 @@ use tokio::sync::Mutex;
 use tokio_util::task::TaskTracker;
 
 use crate::{
-    initializer::{get_local_p2p_node, init_metrics, init_network, init_rpc_api},
+    initializer::{
+        get_local_p2p_node, init_metrics, init_network, init_rollup_store, init_rpc_api,
+    },
     options::Options,
 };
 
@@ -49,7 +50,7 @@ impl Command {
                 let store = init_store(&data_dir, genesis).await;
                 let rollup_store = init_rollup_store(&rollup_store_dir).await;
 
-                let blockchain = init_blockchain(opts.evm, store.clone());
+                let blockchain = init_blockchain(opts.evm, store.clone(), BlockchainType::L2);
 
                 let signer = get_signer(&data_dir);
 
