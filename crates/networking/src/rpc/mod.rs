@@ -1,7 +1,10 @@
+mod block;
+mod transaction;
+
 use crate::sync::SyncClient;
 use axum::{Json, Router, extract::State, http::StatusCode, routing::post};
 use ethrex_blockchain::Blockchain;
-use ethrex_common::{Bytes, types::Transaction};
+use ethrex_common::Bytes;
 use ethrex_p2p::{
     peer_handler::PeerHandler,
     sync_manager::SyncManager,
@@ -23,7 +26,7 @@ use std::{
 };
 use tokio::{net::TcpListener, sync::Mutex as TokioMutex};
 use tower_http::cors::CorsLayer;
-use tracing::{debug, info};
+use tracing::info;
 
 pub const FILTER_DURATION: Duration = Duration::from_secs(300);
 
@@ -32,6 +35,18 @@ pub struct RpcApiContext {
     pub l1_context: L1Context,
     pub rollup_store: StoreRollup,
     pub sync_client: SyncClient,
+}
+
+#[allow(async_fn_in_trait)]
+pub trait RpcHandler: Sized {
+    fn parse(params: &Option<Vec<Value>>) -> Result<Self, RpcErr>;
+
+    async fn call(req: &RpcRequest, context: RpcApiContext) -> Result<Value, RpcErr> {
+        let request = Self::parse(&req.params)?;
+        request.handle(context).await
+    }
+
+    async fn handle(&self, context: RpcApiContext) -> Result<Value, RpcErr>;
 }
 
 #[expect(clippy::too_many_arguments)]
@@ -141,14 +156,22 @@ async fn handle_http_request(
 async fn map_http_requests(req: &RpcRequest, context: RpcApiContext) -> Result<Value, RpcErr> {
     match req.namespace() {
         Ok(RpcNamespace::Eth) => map_eth_requests(req, context).await,
-        Ok(RpcNamespace::Admin) => map_admin_requests(req, context.l1_context),
-        Ok(RpcNamespace::Debug) => map_debug_requests(req, context.l1_context).await,
-        Ok(RpcNamespace::Web3) => map_web3_requests(req, context.l1_context),
-        Ok(RpcNamespace::Net) => map_net_requests(req, context.l1_context),
-        Ok(RpcNamespace::Mempool) => map_mempool_requests(req, context.l1_context).await,
-        Ok(RpcNamespace::Engine) => Err(RpcErr::Internal(
-            "Engine namespace not allowed in map_http_requests".to_owned(),
-        )),
+        Ok(_other_namespaces) => Err(RpcErr::Internal("Unsuppored namespace".to_owned())),
+        // Ok(RpcNamespace::Admin) => map_admin_requests(req, context.l1_context),
+        // Ok(RpcNamespace::Debug) => map_debug_requests(req, context.l1_context).await,
+        // Ok(RpcNamespace::Web3) => map_web3_requests(req, context.l1_context),
+        // Ok(RpcNamespace::Net) => map_net_requests(req, context.l1_context),
+        // Ok(RpcNamespace::Mempool) => map_mempool_requests(req, context.l1_context).await,
+        // Ok(RpcNamespace::Engine) => Err(RpcErr::Internal(
+        //     "Engine namespace not allowed in map_http_requests".to_owned(),
+        // )),
         Err(rpc_err) => Err(rpc_err),
+    }
+}
+
+pub async fn map_eth_requests(req: &RpcRequest, context: RpcApiContext) -> Result<Value, RpcErr> {
+    match req.method.as_str() {
+        "eth_sendRawTransaction" => SendRawTransactionRequest::call(req, context).await,
+        _others => ethrex_rpc::map_eth_requests(req, context.l1_context).await,
     }
 }
