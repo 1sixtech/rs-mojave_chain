@@ -1,0 +1,24 @@
+[package]
+name = "mojave-block-builder"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["rt", "sync"] }
+tokio-stream = { workspace = true }
+tracing = { workspace = true }
+
+# ethrex
+ethrex-blockchain = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
+ethrex-common = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d", features = [
+    "c-kzg",
+] }
+ethrex-l2-common = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
+ethrex-metrics = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d", features = [
+    "metrics",
+] }
+ethrex-rpc = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
+ethrex-storage = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
+ethrex-storage-rollup = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
+ethrex-vm = { git = "https://github.com/1sixtech/ethrex", rev = "3f65132f7fb6d206f189754ace88340184811e7d" }
