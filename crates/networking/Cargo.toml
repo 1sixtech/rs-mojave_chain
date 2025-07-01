@@ -3,6 +3,11 @@ name = "mojave-networking"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["sequencer"]
+full = []
+sequencer = []
+
 [dependencies]
 axum = "0.8.1"
 hex = "0.4.3"

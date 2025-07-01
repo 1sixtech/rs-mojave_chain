@@ -1,5 +1,6 @@
 pub mod cli;
 pub mod command;
+pub mod full_node_options;
 pub mod initializer;
 pub mod logging;
 pub mod networks;

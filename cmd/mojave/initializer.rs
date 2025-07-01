@@ -25,6 +25,7 @@ use tokio::sync::Mutex;
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
 use crate::{
+    full_node_options::FullNodeOptions,
     networks::{self, Network},
     options::Options,
 };
@@ -169,6 +170,14 @@ pub fn get_http_socket_addr(opts: &Options) -> SocketAddr {
         .expect("Failed to parse http address and port")
 }
 
+pub fn get_sequencer_socket_addr(full_node_opts: &FullNodeOptions) -> SocketAddr {
+    parse_socket_addr(
+        &full_node_opts.sequencer_host,
+        &full_node_opts.sequencer_port.to_string(),
+    )
+    .expect("Failed to parse full node address and port")
+}
+
 pub fn get_valid_delegation_addresses(opts: &Options) -> Vec<Address> {
     let Some(ref path) = opts.sponsorable_addresses_file_path else {
         tracing::warn!("No valid addresses provided, ethrex_SendTransaction will always fail");
@@ -190,6 +199,7 @@ pub fn get_valid_delegation_addresses(opts: &Options) -> Vec<Address> {
 #[allow(clippy::too_many_arguments)]
 pub async fn init_rpc_api(
     opts: &Options,
+    full_node_opts: &FullNodeOptions,
     peer_table: Arc<Mutex<KademliaTable>>,
     local_p2p_node: Node,
     local_node_record: NodeRecord,
@@ -211,14 +221,15 @@ pub async fn init_rpc_api(
     )
     .await;
 
-    // Create SyncClient
-    let sync_client = SyncClient::new();
-
     let http_addr = get_http_socket_addr(opts);
+    let sequencer_addr = get_sequencer_socket_addr(full_node_opts);
     let authrpc_addr = get_authrpc_socket_addr(opts);
     let jwt_secret = read_jwtsecret_file(&opts.authrpc_jwtsecret);
     let client_version = get_client_version();
-    // let valid_delegation_addresses = get_valid_delegation_addresses(opts);
+
+    // Create SyncClient
+    let sync_client =
+        SyncClient::new(mojave_networking::sync::SyncClientMode::FullNode { sequencer_addr });
 
     let rpc_api = mojave_networking::rpc::start_api(
         http_addr,

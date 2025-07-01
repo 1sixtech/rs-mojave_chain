@@ -15,6 +15,7 @@ use tokio::sync::Mutex;
 use tokio_util::task::TaskTracker;
 
 use crate::{
+    full_node_options::FullNodeOptions,
     initializer::{
         get_local_p2p_node, init_metrics, init_network, init_rollup_store, init_rpc_api,
     },
@@ -27,6 +28,8 @@ pub enum Command {
     FullNode {
         #[command(flatten)]
         opts: Options,
+        #[command(flatten)]
+        full_node_opts: FullNodeOptions,
     },
     #[command(name = "sequencer", about = "Run a sequencer")]
     Sequencer {
@@ -38,7 +41,10 @@ pub enum Command {
 impl Command {
     pub async fn run(self) -> Result<()> {
         match self {
-            Command::FullNode { opts } => {
+            Command::FullNode {
+                opts,
+                full_node_opts,
+            } => {
                 if opts.evm == EvmEngine::REVM {
                     panic!("Mojave doesn't support REVM, use LEVM instead.");
                 }
@@ -71,6 +77,7 @@ impl Command {
 
                 init_rpc_api(
                     &opts,
+                    &full_node_opts,
                     peer_table.clone(),
                     local_p2p_node.clone(),
                     local_node_record.lock().await.clone(),
