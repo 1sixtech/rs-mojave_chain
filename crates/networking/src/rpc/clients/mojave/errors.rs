@@ -12,4 +12,14 @@ pub enum MojaveClientError {
     RpcError(String),
     #[error("Parse Url Error. {0}")]
     ParseUrlError(String),
+    #[error("Forward Transaction Error: {0}")]
+    ForwardTransactionError(#[from] ForwardTransactionError),
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ForwardTransactionError {
+    #[error("Serde error: {0}")]
+    SerdeJSONError(#[from] serde_json::Error),
+    #[error("{0}")]
+    RPCError(String),
 }

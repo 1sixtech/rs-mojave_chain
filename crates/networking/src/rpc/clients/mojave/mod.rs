@@ -4,7 +4,7 @@ use serde::Deserialize;
 use serde_json::json;
 
 use crate::rpc::{
-    clients::mojave::errors::MojaveClientError,
+    clients::mojave::errors::{ForwardTransactionError, MojaveClientError},
     utils::{RpcErrorResponse, RpcRequest, RpcRequestId, RpcSuccessResponse},
 };
 
@@ -81,12 +81,11 @@ impl Client {
         };
 
         match self.send_request(request).await {
-            Ok(RpcResponse::Success(_result)) => {
-                todo!()
-                // serde_json::from_value(result.result).map_err(MojaveClientError::from)
-            }
-            Ok(RpcResponse::Error(_error_response)) => {
-                todo!()
+            Ok(RpcResponse::Success(result)) => serde_json::from_value(result.result)
+                .map_err(ForwardTransactionError::SerdeJSONError)
+                .map_err(MojaveClientError::from),
+            Ok(RpcResponse::Error(error_response)) => {
+                Err(ForwardTransactionError::RPCError(error_response.error.message).into())
             }
             Err(error) => Err(error),
         }
