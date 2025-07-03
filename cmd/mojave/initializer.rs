@@ -28,6 +28,7 @@ use crate::{
     full_node_options::FullNodeOptions,
     networks::{self, Network},
     options::Options,
+    sequencer_options::SequencerOptions,
 };
 
 pub fn get_bootnodes(opts: &Options, network: &Network, data_dir: &str) -> Vec<Node> {
@@ -197,7 +198,7 @@ pub fn get_valid_delegation_addresses(opts: &Options) -> Vec<Address> {
 }
 
 #[allow(clippy::too_many_arguments)]
-pub async fn init_rpc_api(
+pub async fn init_full_node_rpc_api(
     opts: &Options,
     full_node_opts: &FullNodeOptions,
     peer_table: Arc<Mutex<KademliaTable>>,
@@ -229,7 +230,7 @@ pub async fn init_rpc_api(
 
     // Create MojaveClient
     let mojave_client =
-        Client::new(vec![&sequencer_addr.to_string()]).expect("unable to init sync client");
+        Client::new(vec![&format!("http://{sequencer_addr}")]).expect("unable to init sync client");
 
     let rpc_api = mojave_networking::rpc::full_node::start_api(
         http_addr,
@@ -246,21 +247,63 @@ pub async fn init_rpc_api(
         mojave_client,
     );
 
-    // let rpc_api = ethrex_rpc::start_api(
-    //     get_http_socket_addr(opts),
-    //     get_authrpc_socket_addr(opts),
-    //     store,
-    //     blockchain,
-    //     read_jwtsecret_file(&opts.authrpc_jwtsecret),
-    //     local_p2p_node,
-    //     local_node_record,
-    //     syncer,
-    //     peer_handler,
-    //     get_client_version(),
-    //     get_valid_delegation_addresses(opts),
-    //     opts.sponsor_private_key,
-    //     rollup_store,
-    // );
+    tracker.spawn(rpc_api);
+}
+
+#[allow(clippy::too_many_arguments)]
+pub async fn init_sequencer_rpc_api(
+    opts: &Options,
+    sequencer_opts: &SequencerOptions,
+    peer_table: Arc<Mutex<KademliaTable>>,
+    local_p2p_node: Node,
+    local_node_record: NodeRecord,
+    store: Store,
+    blockchain: Arc<Blockchain>,
+    cancel_token: CancellationToken,
+    tracker: TaskTracker,
+    rollup_store: StoreRollup,
+) {
+    let peer_handler = PeerHandler::new(peer_table);
+
+    // Create SyncManager
+    let syncer = SyncManager::new(
+        peer_handler.clone(),
+        opts.syncmode.clone(),
+        cancel_token,
+        blockchain.clone(),
+        store.clone(),
+    )
+    .await;
+
+    let http_addr = get_http_socket_addr(opts);
+    let authrpc_addr = get_authrpc_socket_addr(opts);
+    let jwt_secret = read_jwtsecret_file(&opts.authrpc_jwtsecret);
+    let client_version = get_client_version();
+
+    // Create MojaveClient
+    let mojave_client = Client::new(
+        sequencer_opts
+            .full_node_addresses
+            .iter()
+            .map(|addr| addr.as_str())
+            .collect(),
+    )
+    .expect("unable to init sync client");
+
+    let rpc_api = mojave_networking::rpc::sequencer::start_api(
+        http_addr,
+        authrpc_addr,
+        store,
+        blockchain,
+        jwt_secret,
+        local_p2p_node,
+        local_node_record,
+        syncer,
+        peer_handler,
+        client_version,
+        rollup_store,
+        mojave_client,
+    );
 
     tracker.spawn(rpc_api);
 }

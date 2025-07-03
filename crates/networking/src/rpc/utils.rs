@@ -1,4 +1,4 @@
-use ethrex_blockchain::error::MempoolError;
+use ethrex_blockchain::error::{ChainError, MempoolError};
 use ethrex_rpc::RpcErrorMetadata;
 use ethrex_storage::error::StoreError;
 use ethrex_vm::EvmError;
@@ -11,6 +11,8 @@ pub enum RpcErr {
     EthrexRPC(ethrex_rpc::RpcErr),
     #[error("Custom error: {0}")]
     CustomError(String),
+    #[error("Blockchain error: {0}")]
+    BlockchainError(#[from] ChainError),
 }
 
 impl From<RpcErr> for RpcErrorMetadata {
@@ -21,6 +23,11 @@ impl From<RpcErr> for RpcErrorMetadata {
                 code: -38000,
                 data: None,
                 message: err,
+            },
+            RpcErr::BlockchainError(err) => RpcErrorMetadata {
+                code: -38001,
+                data: None,
+                message: err.to_string(),
             },
         }
     }

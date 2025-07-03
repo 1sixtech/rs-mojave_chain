@@ -1,5 +1,5 @@
 use crate::rpc::{
-    FILTER_DURATION, RpcRequestWrapper,
+    FILTER_DURATION, RpcHandler, RpcRequestWrapper,
     clients::mojave::Client as MojaveClient,
     utils::{RpcErr, RpcNamespace, RpcRequest, RpcRequestId, rpc_response},
 };
@@ -36,20 +36,8 @@ pub struct RpcApiContextSequencer {
     pub mojave_client: MojaveClient,
 }
 
-#[allow(async_fn_in_trait)]
-pub trait RpcHandler: Sized {
-    fn parse(params: &Option<Vec<Value>>) -> Result<Self, RpcErr>;
-
-    async fn call(req: &RpcRequest, context: RpcApiContextSequencer) -> Result<Value, RpcErr> {
-        let request = Self::parse(&req.params)?;
-        request.handle(context).await
-    }
-
-    async fn handle(&self, context: RpcApiContextSequencer) -> Result<Value, RpcErr>;
-}
-
 #[expect(clippy::too_many_arguments)]
-pub async fn start_api_sequencer(
+pub async fn start_api(
     http_addr: SocketAddr,
     authrpc_addr: SocketAddr,
     storage: Store,
@@ -177,8 +165,7 @@ pub async fn map_mojave_requests(
     context: RpcApiContextSequencer,
 ) -> Result<Value, RpcErr> {
     match req.method.as_str() {
-        "mojave_broadcastBlock" => unimplemented!(),
-        "mojave_forwardTransaction" => unimplemented!(),
+        "mojave_forwardTransaction" => SendRawTransactionRequest::call(req, context).await,
         _others => ethrex_rpc::map_eth_requests(&req.into(), context.l1_context)
             .await
             .map_err(RpcErr::EthrexRPC),

@@ -1,9 +1,11 @@
-use crate::rpc::{full_node::types::transaction::SendRawTransactionRequest, utils::RpcErr};
+use crate::rpc::{
+    RpcHandler, full_node::types::transaction::SendRawTransactionRequest, utils::RpcErr,
+};
 
-use super::{RpcApiContextFullNode, RpcHandler};
+use super::RpcApiContextFullNode;
 use serde_json::Value;
 
-impl RpcHandler for SendRawTransactionRequest {
+impl RpcHandler<RpcApiContextFullNode> for SendRawTransactionRequest {
     fn parse(params: &Option<Vec<Value>>) -> Result<Self, RpcErr> {
         let data = get_transaction_data(params)?;
 

@@ -1,10 +1,10 @@
-use crate::rpc::utils::RpcErr;
+use crate::rpc::{RpcHandler, utils::RpcErr};
 
-use super::{RpcApiContextSequencer, RpcHandler};
+use super::RpcApiContextSequencer;
 use ethrex_rpc::types::transaction::SendRawTransactionRequest;
 use serde_json::Value;
 
-impl RpcHandler for SendRawTransactionRequest {
+impl RpcHandler<RpcApiContextSequencer> for SendRawTransactionRequest {
     fn parse(params: &Option<Vec<Value>>) -> Result<SendRawTransactionRequest, RpcErr> {
         let data = get_transaction_data(params)?;
 

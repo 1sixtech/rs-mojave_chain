@@ -1,10 +1,11 @@
+mod block;
 mod transaction;
 pub mod types;
 
 use crate::rpc::{
-    FILTER_DURATION,
+    FILTER_DURATION, RpcHandler,
     clients::mojave::Client as MojaveClient,
-    full_node::types::transaction::SendRawTransactionRequest,
+    full_node::{block::BroadcastBlockRequest, types::transaction::SendRawTransactionRequest},
     utils::{RpcErr, RpcNamespace, RpcRequest, RpcRequestId, rpc_response},
 };
 use axum::{Json, Router, extract::State, http::StatusCode, routing::post};
@@ -34,6 +35,7 @@ pub struct RpcApiContextFullNode {
     pub l1_context: L1Context,
     pub rollup_store: StoreRollup,
     pub mojave_client: MojaveClient,
+    pub blockchain: Arc<Blockchain>,
 }
 
 #[derive(Deserialize)]
@@ -41,18 +43,6 @@ pub struct RpcApiContextFullNode {
 pub enum RpcRequestWrapper {
     Single(RpcRequest),
     Multiple(Vec<RpcRequest>),
-}
-
-#[allow(async_fn_in_trait)]
-pub trait RpcHandler: Sized {
-    fn parse(params: &Option<Vec<Value>>) -> Result<Self, RpcErr>;
-
-    async fn call(req: &RpcRequest, context: RpcApiContextFullNode) -> Result<Value, RpcErr> {
-        let request = Self::parse(&req.params)?;
-        request.handle(context).await
-    }
-
-    async fn handle(&self, context: RpcApiContextFullNode) -> Result<Value, RpcErr>;
 }
 
 #[expect(clippy::too_many_arguments)]
@@ -74,7 +64,7 @@ pub async fn start_api(
     let context = RpcApiContextFullNode {
         l1_context: L1Context {
             storage,
-            blockchain,
+            blockchain: blockchain.clone(),
             active_filters: active_filters.clone(),
             syncer: Arc::new(syncer),
             peer_handler,
@@ -88,6 +78,7 @@ pub async fn start_api(
         },
         rollup_store,
         mojave_client,
+        blockchain,
     };
 
     // Periodically clean up the active filters for the filters endpoints.
@@ -184,8 +175,7 @@ pub async fn map_mojave_requests(
     context: RpcApiContextFullNode,
 ) -> Result<Value, RpcErr> {
     match req.method.as_str() {
-        "mojave_broadcastBlock" => unimplemented!(),
-        "mojave_forwardTransaction" => unimplemented!(),
+        "mojave_broadcastBlock" => BroadcastBlockRequest::call(req, context).await,
         _others => ethrex_rpc::map_eth_requests(&req.into(), context.l1_context)
             .await
             .map_err(RpcErr::EthrexRPC),
