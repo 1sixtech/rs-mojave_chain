@@ -4452,6 +4452,7 @@ dependencies = [
  "ethrex-storage-rollup",
  "ethrex-vm",
  "hex",
+ "reqwest 0.12.20",
  "secp256k1",
  "serde",
  "serde_json",

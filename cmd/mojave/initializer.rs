@@ -20,7 +20,7 @@ use ethrex_storage::Store;
 use ethrex_storage_rollup::{EngineTypeRollup, StoreRollup};
 use k256::ecdsa::SigningKey;
 use local_ip_address::local_ip;
-use mojave_networking::sync::SyncClient;
+use mojave_networking::rpc::clients::mojave::Client;
 use tokio::sync::Mutex;
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
@@ -227,10 +227,11 @@ pub async fn init_rpc_api(
     let jwt_secret = read_jwtsecret_file(&opts.authrpc_jwtsecret);
     let client_version = get_client_version();
 
-    // Create SyncClient
-    let sync_client = SyncClient::new_full_node(sequencer_addr);
+    // Create MojaveClient
+    let mojave_client =
+        Client::new(vec![&sequencer_addr.to_string()]).expect("unable to init sync client");
 
-    let rpc_api = mojave_networking::rpc::start_api(
+    let rpc_api = mojave_networking::rpc::full_node::start_api(
         http_addr,
         authrpc_addr,
         store,
@@ -242,7 +243,7 @@ pub async fn init_rpc_api(
         peer_handler,
         client_version,
         rollup_store,
-        sync_client,
+        mojave_client,
     );
 
     // let rpc_api = ethrex_rpc::start_api(
