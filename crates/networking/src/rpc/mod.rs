@@ -31,18 +31,26 @@ pub trait RpcHandler<T>: Sized {
 
 #[cfg(test)]
 mod tests {
-    use crate::rpc::utils::test_utils::{start_test_api_full_node, start_test_api_sequencer};
+    use crate::rpc::utils::test_utils::{
+        TEST_SEQUENCER_ADDR, start_test_api_full_node, start_test_api_sequencer,
+    };
 
     use super::*;
 
     use ethrex_common::{
-        Address, Bytes, H256, U256,
-        types::{EIP1559Transaction, Signable, TxKind, TxType},
+        Address, Bloom, Bytes, H256, U256,
+        types::{Block, BlockBody, BlockHeader, EIP1559Transaction, Signable, TxKind, TxType},
     };
     use ethrex_rlp::encode::RLPEncode;
+    use ethrex_rpc::{EthClient, clients::eth::BlockByNumber};
     use secp256k1::SecretKey;
     use serde_json::json;
-    use std::{panic, str::FromStr, time::Duration};
+    use std::{
+        panic,
+        str::FromStr,
+        sync::LazyLock,
+        time::{Duration, SystemTime, UNIX_EPOCH},
+    };
 
     #[test]
     fn test_rpc_request_wrapper_single() {
@@ -440,5 +448,84 @@ mod tests {
                 panic!("Failed to send transaction: {err}");
             }
         }
+    }
+    // Keccak256(""), represents the code hash for an account without code
+    pub static EMPTY_KECCACK_HASH: LazyLock<H256> = LazyLock::new(|| {
+        H256::from_slice(
+            &hex::decode("c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470")
+                .expect("Failed to decode hex from string"),
+        )
+    });
+
+    #[tokio::test]
+    async fn test_send_block() {
+        let (sequencer_client, sequencer_rx) = start_test_api_sequencer(None).await;
+        let (_, full_node_rx) = start_test_api_full_node(None).await;
+        sequencer_rx.await.unwrap();
+        full_node_rx.await.unwrap();
+        let eth_client = EthClient::new(&format!("http://{TEST_SEQUENCER_ADDR}")).unwrap();
+
+        let last_block = eth_client
+            .get_block_by_number(BlockByNumber::Latest)
+            .await
+            .unwrap();
+        let block = Block {
+            header: BlockHeader {
+                parent_hash: last_block.header.hash(),
+                ommers_hash: H256::from_str(
+                    "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+                )
+                .unwrap(),
+                coinbase: Address::zero(),
+                state_root: H256::from_str(
+                    "0xccc9ba0b50722fdde2a64552663a9db63239d969a9957ebae5a60a98d4bf57d3",
+                )
+                .unwrap(),
+                transactions_root: H256::from_str(
+                    "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+                )
+                .unwrap(),
+                receipts_root: H256::from_str(
+                    "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+                )
+                .unwrap(),
+                logs_bloom: Bloom::from([0; 256]),
+                difficulty: U256::zero(),
+                number: last_block.header.number + 1,
+                gas_limit: 0x08F0D180,
+                gas_used: 0,
+                timestamp: SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs(),
+                extra_data: Bytes::new(),
+                prev_randao: H256::zero(),
+                nonce: 0x0000000000000000,
+                base_fee_per_gas: Some(0x342770C0),
+                withdrawals_root: Some(
+                    H256::from_str(
+                        "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+                    )
+                    .unwrap(),
+                ),
+                blob_gas_used: Some(0x00),
+                excess_blob_gas: Some(0x00),
+                parent_beacon_block_root: Some(H256::zero()),
+                requests_hash: Some(
+                    H256::from_str(
+                        "0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                    )
+                    .unwrap(),
+                ),
+                ..Default::default()
+            },
+            body: BlockBody {
+                transactions: vec![],
+                ommers: vec![],
+                withdrawals: None,
+            },
+        };
+
+        sequencer_client.send_broadcast_block(&block).await.unwrap();
     }
 }
