@@ -449,13 +449,6 @@ mod tests {
             }
         }
     }
-    // Keccak256(""), represents the code hash for an account without code
-    pub static EMPTY_KECCACK_HASH: LazyLock<H256> = LazyLock::new(|| {
-        H256::from_slice(
-            &hex::decode("c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470")
-                .expect("Failed to decode hex from string"),
-        )
-    });
 
     #[tokio::test]
     async fn test_send_block() {
