@@ -46,6 +46,7 @@ mod tests {
     use secp256k1::SecretKey;
     use serde_json::json;
     use std::{
+        net::SocketAddr,
         panic,
         str::FromStr,
         sync::LazyLock,
@@ -403,8 +404,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_forward_transaction() {
-        let (_, sequencer_rx) = start_test_api_sequencer(None).await;
-        let (full_node_client, full_node_rx) = start_test_api_full_node(None).await;
+        let (_, sequencer_rx) = start_test_api_sequencer(None, None, None).await;
+        let (full_node_client, full_node_rx) = start_test_api_full_node(None, None, None).await;
         sequencer_rx.await.unwrap();
         full_node_rx.await.unwrap();
 
@@ -452,11 +453,26 @@ mod tests {
 
     #[tokio::test]
     async fn test_send_block() {
-        let (sequencer_client, sequencer_rx) = start_test_api_sequencer(None).await;
-        let (_, full_node_rx) = start_test_api_full_node(None).await;
+        let sequencer_http_addr: SocketAddr = "127.0.0.1:8504".parse().unwrap();
+        let sequencer_auth_addr: SocketAddr = "127.0.0.1:8505".parse().unwrap();
+        let full_node_http_addr: SocketAddr = "127.0.0.1:8506".parse().unwrap();
+        let full_node_auth_addr: SocketAddr = "127.0.0.1:8507".parse().unwrap();
+
+        let (sequencer_client, sequencer_rx) = start_test_api_sequencer(
+            Some(vec![full_node_http_addr]),
+            Some(sequencer_http_addr),
+            Some(sequencer_auth_addr),
+        )
+        .await;
+        let (_, full_node_rx) = start_test_api_full_node(
+            Some(sequencer_http_addr),
+            Some(full_node_http_addr),
+            Some(full_node_auth_addr),
+        )
+        .await;
         sequencer_rx.await.unwrap();
         full_node_rx.await.unwrap();
-        let eth_client = EthClient::new(&format!("http://{TEST_SEQUENCER_ADDR}")).unwrap();
+        let eth_client = EthClient::new(&format!("http://{sequencer_http_addr}")).unwrap();
 
         let last_block = eth_client
             .get_block_by_number(BlockByNumber::Latest)

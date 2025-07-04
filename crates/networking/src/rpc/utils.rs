@@ -263,9 +263,11 @@ pub mod test_utils {
 
     pub async fn start_test_api_full_node(
         sequencer_addr: Option<SocketAddr>,
+        http_addr: Option<SocketAddr>,
+        authrpc_addr: Option<SocketAddr>,
     ) -> (Client, Receiver<()>) {
-        let http_addr: SocketAddr = TEST_NODE_ADDR.parse().unwrap();
-        let authrpc_addr: SocketAddr = "127.0.0.1:8501".parse().unwrap();
+        let http_addr = http_addr.unwrap_or(TEST_NODE_ADDR.parse().unwrap());
+        let authrpc_addr = authrpc_addr.unwrap_or("127.0.0.1:8501".parse().unwrap());
         let storage =
             Store::new("", EngineType::InMemory).expect("Failed to create in-memory storage");
         storage
@@ -305,9 +307,13 @@ pub mod test_utils {
         (client, full_node_rx)
     }
 
-    pub async fn start_test_api_sequencer(node_urls: Option<Vec<&str>>) -> (Client, Receiver<()>) {
-        let http_addr: SocketAddr = "127.0.0.1:8502".parse().unwrap();
-        let authrpc_addr: SocketAddr = "127.0.0.1:8503".parse().unwrap();
+    pub async fn start_test_api_sequencer(
+        node_urls: Option<Vec<SocketAddr>>,
+        http_addr: Option<SocketAddr>,
+        authrpc_addr: Option<SocketAddr>,
+    ) -> (Client, Receiver<()>) {
+        let http_addr = http_addr.unwrap_or_else(|| TEST_SEQUENCER_ADDR.parse().unwrap());
+        let authrpc_addr = authrpc_addr.unwrap_or_else(|| "127.0.0.1:8503".parse().unwrap());
         let storage =
             Store::new("", EngineType::InMemory).expect("Failed to create in-memory storage");
         storage
@@ -319,10 +325,12 @@ pub mod test_utils {
         let local_p2p_node = example_p2p_node();
         let rollup_store = example_rollup_store().await;
         let default_node_url = format!("http://{TEST_NODE_ADDR}");
-        let node_urls = match node_urls {
-            Some(addr) => addr,
-            None => vec![default_node_url.as_str()],
+        let node_urls: Vec<String> = match node_urls {
+            Some(addrs) => addrs.iter().map(|addr| format!("http://{addr}")).collect(),
+            None => vec![default_node_url.to_string()],
         };
+
+        let node_urls: Vec<&str> = node_urls.iter().map(|s| s.as_str()).collect();
         let client = Client::new(node_urls).unwrap();
 
         let rpc_api = start_api_sequencer(

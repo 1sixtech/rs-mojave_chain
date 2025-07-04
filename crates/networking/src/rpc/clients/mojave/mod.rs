@@ -82,7 +82,7 @@ impl Client {
             .map_err(MojaveClientError::from)
     }
 
-    pub async fn send_forward_transaction(self, data: &[u8]) -> Result<H256, MojaveClientError> {
+    pub async fn send_forward_transaction(&self, data: &[u8]) -> Result<H256, MojaveClientError> {
         let request = RpcRequest {
             id: RpcRequestId::Number(1),
             jsonrpc: "2.0".to_string(),
@@ -100,7 +100,7 @@ impl Client {
         }
     }
 
-    pub async fn send_broadcast_block(self, block: &Block) -> Result<(), MojaveClientError> {
+    pub async fn send_broadcast_block(&self, block: &Block) -> Result<(), MojaveClientError> {
         let request = RpcRequest {
             id: RpcRequestId::Number(1),
             jsonrpc: "2.0".to_string(),
