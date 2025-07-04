@@ -51,6 +51,24 @@
       "storage": {},
       "balance": "0x0",
       "nonce": "0x1"
+    },
+    "0x00000a8d3f37af8def18832962ee008d8dca4f7b": {
+      "code": "0x",
+      "storage": {},
+      "balance": "0xc097ce7bc90715b34b9f1000000000",
+      "nonce": "0x0"
+    },
+    "0x00002132ce94eefb06eb15898c1aabd94feb0ac2": {
+      "code": "0x",
+      "storage": {},
+      "balance": "0xc097ce7bc90715b34b9f1000000000",
+      "nonce": "0x0"
+    },
+    "0x3d1e15a1a55578f7c920884a9943b3b35d0d885b": {
+      "code": "0x",
+      "storage": {},
+      "balance": "0xc097ce7bc90715b34b9f1000000000",
+      "nonce": "0x0"
     }
   }
 }

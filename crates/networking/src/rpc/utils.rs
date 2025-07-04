@@ -60,6 +60,7 @@ impl From<secp256k1::Error> for RpcErr {
     }
 }
 
+#[derive(Debug)]
 pub enum RpcNamespace {
     Engine,
     Eth,
@@ -209,5 +210,142 @@ pub fn parse_json_hex(hex: &serde_json::Value) -> Result<u64, String> {
         maybe_parsed.map_err(|_| format!("Could not parse given hex {maybe_hex}"))
     } else {
         Err(format!("Could not parse given hex {hex}"))
+    }
+}
+
+#[cfg(test)]
+pub mod test_utils {
+    use std::{net::SocketAddr, str::FromStr, sync::Arc};
+
+    use ethrex_blockchain::Blockchain;
+    use ethrex_common::H512;
+    use ethrex_p2p::{
+        peer_handler::PeerHandler,
+        sync_manager::SyncManager,
+        types::{Node, NodeRecord},
+    };
+    use ethrex_storage::{EngineType, Store};
+    use ethrex_storage_rollup::{EngineTypeRollup, StoreRollup};
+    use k256::ecdsa::SigningKey;
+    use tokio::sync::oneshot::Receiver;
+
+    use crate::rpc::{
+        clients::mojave::Client, full_node::start_api as start_api_full_node,
+        sequencer::start_api as start_api_sequencer,
+    };
+
+    pub const TEST_GENESIS: &str = include_str!("../../../../test_data/genesis.json");
+    pub const TEST_SEQUENCER_ADDR: &str = "127.0.0.1:8502";
+    pub const TEST_NODE_ADDR: &str = "127.0.0.1:8500";
+
+    pub fn example_p2p_node() -> Node {
+        let public_key_1 = H512::from_str("d860a01f9722d78051619d1e2351aba3f43f943f6f00718d1b9baa4101932a1f5011f16bb2b1bb35db20d6fe28fa0bf09636d26a87d31de9ec6203eeedb1f666").unwrap();
+        Node::new("127.0.0.1".parse().unwrap(), 30303, 30303, public_key_1)
+    }
+
+    pub fn example_local_node_record() -> NodeRecord {
+        let public_key_1 = H512::from_str("d860a01f9722d78051619d1e2351aba3f43f943f6f00718d1b9baa4101932a1f5011f16bb2b1bb35db20d6fe28fa0bf09636d26a87d31de9ec6203eeedb1f666").unwrap();
+        let node = Node::new("127.0.0.1".parse().unwrap(), 30303, 30303, public_key_1);
+        let signer = SigningKey::random(&mut rand::rngs::OsRng);
+
+        NodeRecord::from_node(&node, 1, &signer).unwrap()
+    }
+
+    pub async fn example_rollup_store() -> StoreRollup {
+        let rollup_store = StoreRollup::new(".", EngineTypeRollup::InMemory)
+            .expect("Failed to create StoreRollup");
+        rollup_store
+            .init()
+            .await
+            .expect("Failed to init rollup store");
+        rollup_store
+    }
+
+    pub async fn start_test_api_full_node(
+        sequencer_addr: Option<SocketAddr>,
+    ) -> (Client, Receiver<()>) {
+        let http_addr: SocketAddr = TEST_NODE_ADDR.parse().unwrap();
+        let authrpc_addr: SocketAddr = "127.0.0.1:8501".parse().unwrap();
+        let storage =
+            Store::new("", EngineType::InMemory).expect("Failed to create in-memory storage");
+        storage
+            .add_initial_state(serde_json::from_str(TEST_GENESIS).unwrap())
+            .await
+            .expect("Failed to build test genesis");
+        let blockchain = Arc::new(Blockchain::default_with_store(storage.clone()));
+        let jwt_secret = Default::default();
+        let local_p2p_node = example_p2p_node();
+        let rollup_store = example_rollup_store().await;
+        let sequencer_addr = match sequencer_addr {
+            Some(addr) => addr,
+            None => TEST_SEQUENCER_ADDR.parse().unwrap(),
+        };
+        let client = Client::new(vec![&format!("http://{sequencer_addr}")]).unwrap();
+
+        let rpc_api = start_api_full_node(
+            http_addr,
+            authrpc_addr,
+            storage,
+            blockchain,
+            jwt_secret,
+            local_p2p_node,
+            example_local_node_record(),
+            SyncManager::dummy(),
+            PeerHandler::dummy(),
+            "ethrex/test".to_string(),
+            rollup_store,
+            client.clone(),
+        );
+        let (full_node_tx, full_node_rx) = tokio::sync::oneshot::channel();
+        tokio::spawn(async move {
+            full_node_tx.send(()).unwrap();
+            rpc_api.await.unwrap()
+        });
+
+        (client, full_node_rx)
+    }
+
+    pub async fn start_test_api_sequencer(node_urls: Option<Vec<&str>>) -> (Client, Receiver<()>) {
+        let http_addr: SocketAddr = "127.0.0.1:8502".parse().unwrap();
+        let authrpc_addr: SocketAddr = "127.0.0.1:8503".parse().unwrap();
+        let storage =
+            Store::new("", EngineType::InMemory).expect("Failed to create in-memory storage");
+        storage
+            .add_initial_state(serde_json::from_str(TEST_GENESIS).unwrap())
+            .await
+            .expect("Failed to build test genesis");
+        let blockchain = Arc::new(Blockchain::default_with_store(storage.clone()));
+        let jwt_secret = Default::default();
+        let local_p2p_node = example_p2p_node();
+        let rollup_store = example_rollup_store().await;
+        let default_node_url = format!("http://{TEST_NODE_ADDR}");
+        let node_urls = match node_urls {
+            Some(addr) => addr,
+            None => vec![default_node_url.as_str()],
+        };
+        let client = Client::new(node_urls).unwrap();
+
+        let rpc_api = start_api_sequencer(
+            http_addr,
+            authrpc_addr,
+            storage,
+            blockchain,
+            jwt_secret,
+            local_p2p_node,
+            example_local_node_record(),
+            SyncManager::dummy(),
+            PeerHandler::dummy(),
+            "ethrex/test".to_string(),
+            rollup_store,
+            client.clone(),
+        );
+
+        let (sequencer_tx, sequencer_rx) = tokio::sync::oneshot::channel();
+        tokio::spawn(async move {
+            sequencer_tx.send(()).unwrap();
+            rpc_api.await.unwrap()
+        });
+
+        (client, sequencer_rx)
     }
 }

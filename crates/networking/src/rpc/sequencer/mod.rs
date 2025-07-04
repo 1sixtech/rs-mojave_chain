@@ -165,7 +165,7 @@ pub async fn map_mojave_requests(
     context: RpcApiContextSequencer,
 ) -> Result<Value, RpcErr> {
     match req.method.as_str() {
-        "mojave_forwardTransaction" => SendRawTransactionRequest::call(req, context).await,
+        "mojave_sendForwardTransaction" => SendRawTransactionRequest::call(req, context).await,
         _others => ethrex_rpc::map_eth_requests(&req.into(), context.l1_context)
             .await
             .map_err(RpcErr::EthrexRPC),

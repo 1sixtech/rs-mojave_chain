@@ -1,6 +1,6 @@
 #[derive(Debug, thiserror::Error)]
 pub enum MojaveClientError {
-    #[error("reqwest error: {0}")]
+    #[error("reqwest error123: {0}")]
     ReqwestError(#[from] reqwest::Error),
     #[error("Failed to serialize request body: {0}")]
     FailedToSerializeRequestBody(String),

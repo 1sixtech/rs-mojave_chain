@@ -7,10 +7,8 @@ use serde_json::Value;
 impl RpcHandler<RpcApiContextSequencer> for SendRawTransactionRequest {
     fn parse(params: &Option<Vec<Value>>) -> Result<SendRawTransactionRequest, RpcErr> {
         let data = get_transaction_data(params)?;
-
         let transaction = SendRawTransactionRequest::decode_canonical(&data)
             .map_err(|error| RpcErr::EthrexRPC(ethrex_rpc::RpcErr::BadParams(error.to_string())))?;
-
         if matches!(transaction, SendRawTransactionRequest::PrivilegedL2(_)) {
             return Err(RpcErr::EthrexRPC(ethrex_rpc::RpcErr::BadParams(
                 "Invalid transaction type".to_string(),

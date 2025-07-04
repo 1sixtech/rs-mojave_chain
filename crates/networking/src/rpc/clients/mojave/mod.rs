@@ -2,6 +2,7 @@ use ethrex_common::{H256, types::Block};
 use reqwest::Url;
 use serde::Deserialize;
 use serde_json::json;
+use std::sync::Arc;
 
 use crate::rpc::{
     clients::mojave::errors::{ForwardTransactionError, MojaveClientError},
@@ -10,10 +11,15 @@ use crate::rpc::{
 
 pub mod errors;
 
-#[derive(Clone, Debug)]
-pub struct Client {
+#[derive(Debug)]
+struct ClientInner {
     client: reqwest::Client,
     pub urls: Vec<Url>,
+}
+
+#[derive(Clone, Debug)]
+pub struct Client {
+    inner: Arc<ClientInner>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -36,8 +42,10 @@ impl Client {
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(Self {
-            client: reqwest::Client::new(),
-            urls,
+            inner: Arc::new(ClientInner {
+                client: reqwest::Client::new(),
+                urls,
+            }),
         })
     }
 
@@ -46,7 +54,7 @@ impl Client {
             "All rpc calls failed".to_string(),
         ));
 
-        for url in self.urls.iter() {
+        for url in self.inner.urls.iter() {
             let maybe_response = self.send_request_to_url(url, &request).await;
             if maybe_response.is_ok() {
                 response = maybe_response;
@@ -60,7 +68,8 @@ impl Client {
         url: &Url,
         request: &RpcRequest,
     ) -> Result<RpcResponse, MojaveClientError> {
-        self.client
+        self.inner
+            .client
             .post(url.as_str())
             .header("content-type", "application/json")
             .body(serde_json::ser::to_string(&request).map_err(|error| {
@@ -80,7 +89,6 @@ impl Client {
             method: "mojave_sendForwardTransaction".to_string(),
             params: Some(vec![json!("0x".to_string() + &hex::encode(data))]),
         };
-
         match self.send_request(request).await {
             Ok(RpcResponse::Success(result)) => serde_json::from_value(result.result)
                 .map_err(ForwardTransactionError::SerdeJSONError)
@@ -163,7 +171,7 @@ mod tests {
         let client = Client::new(urls);
         assert!(client.is_ok());
         let client = client.unwrap();
-        assert_eq!(client.urls.len(), 2);
+        assert_eq!(client.inner.urls.len(), 2);
     }
 
     #[test]
@@ -187,7 +195,7 @@ mod tests {
         let client = Client::new(urls);
         assert!(client.is_ok());
         let client = client.unwrap();
-        assert_eq!(client.urls.len(), 0);
+        assert_eq!(client.inner.urls.len(), 0);
     }
 
     #[tokio::test]
@@ -324,5 +332,31 @@ mod tests {
             r#"{"id":1,"jsonrpc":"2.0","error":{"code":-32602,"message":"Invalid params"}}"#;
         let response: RpcResponse = serde_json::from_str(json_str).unwrap();
         assert!(matches!(response, RpcResponse::Error(_)));
+    }
+
+    #[test]
+    fn test_client_arc_cloning() {
+        let urls = vec!["http://localhost:8545"];
+        let client = Client::new(urls).unwrap();
+
+        // Clone the client multiple times
+        let client_clone1 = client.clone();
+        let client_clone2 = client.clone();
+
+        // Verify that all instances point to the same URLs
+        assert_eq!(client.inner.urls.len(), 1);
+        assert_eq!(client_clone1.inner.urls.len(), 1);
+        assert_eq!(client_clone2.inner.urls.len(), 1);
+
+        // Verify URL content is the same
+        assert_eq!(client.inner.urls[0].as_str(), "http://localhost:8545/");
+        assert_eq!(
+            client_clone1.inner.urls[0].as_str(),
+            "http://localhost:8545/"
+        );
+        assert_eq!(
+            client_clone2.inner.urls[0].as_str(),
+            "http://localhost:8545/"
+        );
     }
 }
