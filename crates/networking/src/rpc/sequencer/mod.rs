@@ -146,7 +146,7 @@ async fn map_http_requests(
         Ok(RpcNamespace::Eth) => map_eth_requests(req, context).await,
         Ok(RpcNamespace::Mojave) => map_mojave_requests(req, context).await,
         Ok(_other_namespaces) => Err(RpcErr::EthrexRPC(ethrex_rpc::RpcErr::Internal(
-            "Unsuppored namespace".to_owned(),
+            "Unsupported namespace".to_owned(),
         ))),
         // Ok(RpcNamespace::Admin) => map_admin_requests(req, context.l1_context),
         // Ok(RpcNamespace::Debug) => map_debug_requests(req, context.l1_context).await,
