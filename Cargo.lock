@@ -80,7 +80,7 @@ dependencies = [
  "ethers",
  "futures-util",
  "hex",
- "lambdaworks-crypto 0.12.0",
+ "lambdaworks-crypto",
  "log",
  "reqwest 0.12.20",
  "serde",
@@ -2309,7 +2309,7 @@ dependencies = [
 [[package]]
 name = "ethrex"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "anyhow",
  "bytes",
@@ -2352,7 +2352,7 @@ dependencies = [
 [[package]]
 name = "ethrex-blockchain"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "bytes",
  "cfg-if",
@@ -2373,7 +2373,7 @@ dependencies = [
 [[package]]
 name = "ethrex-common"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "bytes",
  "c-kzg",
@@ -2399,7 +2399,7 @@ dependencies = [
 [[package]]
 name = "ethrex-dev"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "bytes",
  "envy",
@@ -2420,7 +2420,7 @@ dependencies = [
 [[package]]
 name = "ethrex-l2"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "aligned-sdk",
  "bincode",
@@ -2466,7 +2466,7 @@ dependencies = [
 [[package]]
 name = "ethrex-l2-common"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "bytes",
  "ethereum-types 0.15.1",
@@ -2476,17 +2476,15 @@ dependencies = [
  "ethrex-trie",
  "ethrex-vm",
  "keccak-hash",
- "lambdaworks-crypto 0.11.0",
  "lazy_static",
  "serde",
- "sha3",
  "thiserror 2.0.12",
 ]
 
 [[package]]
 name = "ethrex-l2-rpc"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "axum 0.8.4",
  "bytes",
@@ -2510,7 +2508,7 @@ dependencies = [
 [[package]]
 name = "ethrex-levm"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "bls12_381",
  "bytes",
@@ -2538,7 +2536,7 @@ dependencies = [
 [[package]]
 name = "ethrex-metrics"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "axum 0.8.4",
  "ethrex-common",
@@ -2553,7 +2551,7 @@ dependencies = [
 [[package]]
 name = "ethrex-p2p"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "aes",
  "bytes",
@@ -2585,7 +2583,7 @@ dependencies = [
 [[package]]
 name = "ethrex-rlp"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "bytes",
  "ethereum-types 0.15.1",
@@ -2599,7 +2597,7 @@ dependencies = [
 [[package]]
 name = "ethrex-rpc"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "axum 0.8.4",
  "axum-extra",
@@ -2635,7 +2633,7 @@ dependencies = [
 [[package]]
 name = "ethrex-sdk"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "bytes",
  "ethereum-types 0.15.1",
@@ -2660,7 +2658,7 @@ dependencies = [
 [[package]]
 name = "ethrex-storage"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2683,7 +2681,7 @@ dependencies = [
 [[package]]
 name = "ethrex-storage-rollup"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2706,7 +2704,7 @@ dependencies = [
 [[package]]
 name = "ethrex-trie"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "anyhow",
  "bytes",
@@ -2727,7 +2725,7 @@ dependencies = [
 [[package]]
 name = "ethrex-vm"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "bincode",
  "bytes",
@@ -3995,18 +3993,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "507460a910eb7b32ee961886ff48539633b788a36b65692b95f225b844c82553"
 dependencies = [
  "regex-automata 0.4.9",
-]
-
-[[package]]
-name = "lambdaworks-crypto"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ec4b462bbec171e1af821f3d9fff72e17de93b3d1022f29aa70fec8262c1cee"
-dependencies = [
- "lambdaworks-math 0.11.0",
- "serde",
- "sha2",
- "sha3",
 ]
 
 [[package]]
@@ -8350,7 +8336,7 @@ dependencies = [
 [[package]]
 name = "zkvm_interface"
 version = "0.1.0"
-source = "git+https://github.com/1sixtech/ethrex?rev=8c1812c8b0a657ac11392bda47bc88034bd10c67#8c1812c8b0a657ac11392bda47bc88034bd10c67"
+source = "git+https://github.com/1sixtech/ethrex?rev=d62fcc5accaaa13b9909af04071379219dc6a0b1#d62fcc5accaaa13b9909af04071379219dc6a0b1"
 dependencies = [
  "ethrex-blockchain",
  "ethrex-common",

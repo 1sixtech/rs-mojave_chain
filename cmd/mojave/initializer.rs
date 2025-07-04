@@ -28,7 +28,7 @@ use crate::{
     full_node_options::FullNodeOptions,
     networks::{self, Network},
     options::Options,
-    sequencer_options::SequencerOptions,
+    sequencer_options::SequencerOpts,
 };
 
 pub fn get_bootnodes(opts: &Options, network: &Network, data_dir: &str) -> Vec<Node> {
@@ -253,7 +253,7 @@ pub async fn init_full_node_rpc_api(
 #[allow(clippy::too_many_arguments)]
 pub async fn init_sequencer_rpc_api(
     opts: &Options,
-    sequencer_opts: &SequencerOptions,
+    sequencer_opts: &SequencerOpts,
     peer_table: Arc<Mutex<KademliaTable>>,
     local_p2p_node: Node,
     local_node_record: NodeRecord,
@@ -281,14 +281,13 @@ pub async fn init_sequencer_rpc_api(
     let client_version = get_client_version();
 
     // Create MojaveClient
-    let mojave_client = Client::new(
-        sequencer_opts
-            .full_node_addresses
-            .iter()
-            .map(|addr| addr.as_str())
-            .collect(),
-    )
-    .expect("unable to init sync client");
+    let addrs: Vec<String> = sequencer_opts
+        .full_node_addresses
+        .iter()
+        .map(|addr| format!("http://{addr}"))
+        .collect();
+    let addrs = addrs.iter().map(|addr| addr.as_str()).collect();
+    let mojave_client = Client::new(addrs).expect("unable to init sync client");
 
     let rpc_api = mojave_networking::rpc::sequencer::start_api(
         http_addr,

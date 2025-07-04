@@ -21,7 +21,7 @@ use crate::{
         init_sequencer_rpc_api,
     },
     options::Options,
-    sequencer_options::SequencerOptions,
+    sequencer_options::SequencerOpts,
 };
 
 #[derive(Subcommand, Debug)]
@@ -38,7 +38,7 @@ pub enum Command {
         #[command(flatten)]
         opts: Options,
         #[command(flatten)]
-        sequencer_opts: SequencerOptions,
+        sequencer_opts: SequencerOpts,
     },
 }
 
