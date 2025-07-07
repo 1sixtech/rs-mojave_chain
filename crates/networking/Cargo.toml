@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+# our
+mojave-chain-utils = { workspace = true }
+
 axum = "0.8.1"
 hex = "0.4.3"
 serde_json = { workspace = true }

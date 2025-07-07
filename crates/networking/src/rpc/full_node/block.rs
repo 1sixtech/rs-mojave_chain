@@ -1,7 +1,13 @@
-use crate::rpc::{RpcHandler, full_node::RpcApiContextFullNode, utils::RpcErr};
+use crate::rpc::{
+    RpcHandler,
+    full_node::{RpcApiContextFullNode, block, types::ordered_block::OrderedBlock},
+    utils::RpcErr,
+};
 
-use ethrex_common::types::Block;
+use ethrex_common::types::{Block, BlockNumber};
+use ethrex_rpc::clients::eth::BlockByNumber;
 use serde_json::Value;
+use tracing_subscriber::filter::combinator::Or;
 
 pub struct BroadcastBlockRequest {
     block: Block,
@@ -14,11 +20,17 @@ impl RpcHandler<RpcApiContextFullNode> for BroadcastBlockRequest {
     }
 
     async fn handle(&self, context: RpcApiContextFullNode) -> Result<Value, RpcErr> {
-        context
-            .blockchain
-            .add_block(&self.block)
-            .await
-            .map_err(RpcErr::BlockchainError)?;
+        let mut latest_block_number =
+            context.l1_context.storage.get_latest_block_number().await? + 1;
+        for block_number in latest_block_number..self.block.header.number {
+            let block = context
+                .eth_client
+                .get_block_by_number(BlockByNumber::Number(block_number))
+                .await?;
+            context.block_queue.push(OrderedBlock(self.block));
+        }
+
+        context.block_queue.push(OrderedBlock(self.block));
         Ok(Value::Null)
     }
 }

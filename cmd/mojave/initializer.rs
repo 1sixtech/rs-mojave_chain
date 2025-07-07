@@ -16,6 +16,7 @@ use ethrex_p2p::{
     sync_manager::SyncManager,
     types::{Node, NodeRecord},
 };
+use ethrex_rpc::EthClient;
 use ethrex_storage::Store;
 use ethrex_storage_rollup::{EngineTypeRollup, StoreRollup};
 use k256::ecdsa::SigningKey;
@@ -228,9 +229,11 @@ pub async fn init_full_node_rpc_api(
     let jwt_secret = read_jwtsecret_file(&opts.authrpc_jwtsecret);
     let client_version = get_client_version();
 
+    let url = format!("http://{sequencer_addr}");
     // Create MojaveClient
-    let mojave_client =
-        Client::new(vec![&format!("http://{sequencer_addr}")]).expect("unable to init sync client");
+    let mojave_client = Client::new(vec![&url]).expect("unable to init sync client");
+    // Create EthClient
+    let eth_client = EthClient::new(&url).expect("unable to init eth client");
 
     let rpc_api = mojave_networking::rpc::full_node::start_api(
         http_addr,
@@ -245,6 +248,7 @@ pub async fn init_full_node_rpc_api(
         client_version,
         rollup_store,
         mojave_client,
+        eth_client,
     );
 
     tracker.spawn(rpc_api);
