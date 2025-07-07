@@ -7,4 +7,9 @@ edition = "2024"
 tokio = { workspace = true, features = ["signal", "sync"] }
 
 [dev-dependencies]
-tokio = { workspace = true, features = ["macros", "rt", "time"] }
+tokio = { workspace = true, features = [
+  "macros",
+  "rt",
+  "rt-multi-thread",
+  "time",
+] }

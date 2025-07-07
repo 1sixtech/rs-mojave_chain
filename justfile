@@ -70,3 +70,11 @@ upgrade:
 # Build the packages
 build:
 	cargo build
+
+# Build and serve documentation
+doc:
+	cargo doc --open --no-deps
+
+# Watch and rebuild documentation on changes
+doc-watch:
+	cargo watch -x "doc --no-deps"
