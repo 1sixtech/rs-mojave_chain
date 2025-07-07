@@ -3,5 +3,8 @@ name = "mojave-chain-utils"
 version = "0.1.0"
 edition = "2024"
 
+[dependencies]
+tokio = { workspace = true, features = ["signal", "sync"] }
+
 [dev-dependencies]
-tokio = { workspace = true, features = ["macros", "sync", "rt", "time"] }
+tokio = { workspace = true, features = ["macros", "rt", "time"] }

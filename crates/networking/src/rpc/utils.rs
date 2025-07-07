@@ -9,6 +9,8 @@ use serde_json::Value;
 pub enum RpcErr {
     #[error(transparent)]
     EthrexRPC(ethrex_rpc::RpcErr),
+    #[error("EthClient error: {0}")]
+    EthClientError(#[from] ethrex_rpc::clients::EthClientError),
     #[error("Custom error: {0}")]
     CustomError(String),
     #[error("Blockchain error: {0}")]
@@ -26,6 +28,11 @@ impl From<RpcErr> for RpcErrorMetadata {
             },
             RpcErr::BlockchainError(err) => RpcErrorMetadata {
                 code: -38001,
+                data: None,
+                message: err.to_string(),
+            },
+            RpcErr::EthClientError(err) => RpcErrorMetadata {
+                code: -38002,
                 data: None,
                 message: err.to_string(),
             },
@@ -224,6 +231,7 @@ pub mod test_utils {
         sync_manager::SyncManager,
         types::{Node, NodeRecord},
     };
+    use ethrex_rpc::EthClient;
     use ethrex_storage::{EngineType, Store};
     use ethrex_storage_rollup::{EngineTypeRollup, StoreRollup};
     use k256::ecdsa::SigningKey;
@@ -282,7 +290,9 @@ pub mod test_utils {
             Some(addr) => addr,
             None => TEST_SEQUENCER_ADDR.parse().unwrap(),
         };
-        let client = Client::new(vec![&format!("http://{sequencer_addr}")]).unwrap();
+        let url = format!("http://{sequencer_addr}");
+        let client = Client::new(vec![&url]).unwrap();
+        let eth_client = EthClient::new(&url).unwrap();
 
         let rpc_api = start_api_full_node(
             http_addr,
@@ -297,6 +307,7 @@ pub mod test_utils {
             "ethrex/test".to_string(),
             rollup_store,
             client.clone(),
+            eth_client,
         );
         let (full_node_tx, full_node_rx) = tokio::sync::oneshot::channel();
         tokio::spawn(async move {

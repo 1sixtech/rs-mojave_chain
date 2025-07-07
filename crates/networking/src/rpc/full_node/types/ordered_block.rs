@@ -14,7 +14,7 @@ impl Eq for OrderedBlock {}
 
 impl PartialOrd for OrderedBlock {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.0.header.number.partial_cmp(&other.0.header.number)
+        Some(self.cmp(other))
     }
 }
 

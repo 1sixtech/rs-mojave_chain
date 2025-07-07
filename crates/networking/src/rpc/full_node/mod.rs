@@ -103,16 +103,6 @@ pub async fn start_api(
         }
     });
 
-    tokio::task::spawn(async move {
-        loop {
-            let block = context.block_queue.pop_wait().await;
-            let added_block = context.blockchain.add_block(&block.0).await;
-            if added_block.is_err() {
-                tracing::error!(error= %added_block, "Failed to add block to blockchain");
-            }
-        }
-    });
-
     // All request headers allowed.
     // All methods allowed.
     // All origins allowed.
@@ -135,6 +125,16 @@ pub async fn start_api(
 
     let _ =
         tokio::try_join!(http_server).inspect_err(|e| info!("Error shutting down servers: {e:?}"));
+
+    tokio::task::spawn(async move {
+        loop {
+            let block = context.block_queue.pop_wait().await;
+            let added_block = context.blockchain.add_block(&block.0).await;
+            if let Err(added_block) = added_block {
+                tracing::error!(error= %added_block, "Failed to add block to blockchain");
+            }
+        }
+    });
 
     Ok(())
 }

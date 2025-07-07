@@ -13,6 +13,7 @@ where
     fn key(&self) -> K;
 }
 
+#[derive(Debug, Clone)]
 pub struct AsyncUniqueHeap<T, K>
 where
     K: Eq + Hash + Clone,

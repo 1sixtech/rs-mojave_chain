@@ -1,13 +1,12 @@
 use crate::rpc::{
     RpcHandler,
-    full_node::{RpcApiContextFullNode, block, types::ordered_block::OrderedBlock},
+    full_node::{RpcApiContextFullNode, types::ordered_block::OrderedBlock},
     utils::RpcErr,
 };
 
-use ethrex_common::types::{Block, BlockNumber};
+use ethrex_common::types::{Block, BlockBody, Transaction};
 use ethrex_rpc::clients::eth::BlockByNumber;
 use serde_json::Value;
-use tracing_subscriber::filter::combinator::Or;
 
 pub struct BroadcastBlockRequest {
     block: Block,
@@ -20,17 +19,44 @@ impl RpcHandler<RpcApiContextFullNode> for BroadcastBlockRequest {
     }
 
     async fn handle(&self, context: RpcApiContextFullNode) -> Result<Value, RpcErr> {
-        let mut latest_block_number =
-            context.l1_context.storage.get_latest_block_number().await? + 1;
+        let latest_block_number = context.l1_context.storage.get_latest_block_number().await? + 1;
         for block_number in latest_block_number..self.block.header.number {
             let block = context
                 .eth_client
                 .get_block_by_number(BlockByNumber::Number(block_number))
                 .await?;
-            context.block_queue.push(OrderedBlock(self.block));
+
+            match block.body {
+                ethrex_rpc::types::block::BlockBodyWrapper::Full(full_block_body) => {
+                    // transform RPCBlock to normal block
+                    let transactions: Vec<Transaction> = full_block_body
+                        .transactions
+                        .iter()
+                        .map(|b| b.tx.clone())
+                        .collect();
+
+                    context
+                        .block_queue
+                        .push(OrderedBlock(Block::new(
+                            block.header,
+                            BlockBody {
+                                ommers: full_block_body.uncles,
+                                transactions,
+                                withdrawals: Some(full_block_body.withdrawals),
+                            },
+                        )))
+                        .await;
+                }
+                ethrex_rpc::types::block::BlockBodyWrapper::OnlyHashes(..) => {
+                    unreachable!()
+                }
+            }
         }
 
-        context.block_queue.push(OrderedBlock(self.block));
+        context
+            .block_queue
+            .push(OrderedBlock(self.block.clone()))
+            .await;
         Ok(Value::Null)
     }
 }
