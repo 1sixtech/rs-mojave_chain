@@ -13,14 +13,43 @@ where
     fn key(&self) -> K;
 }
 
+#[derive(Debug)]
+struct InnerHeap<T, K>
+where
+    K: Eq + Hash + Clone,
+    T: Ord + UniqueHeapItem<K> + Clone,
+{
+    heap: BinaryHeap<T>,
+    keys: HashSet<K>,
+}
+
+impl<T, K> InnerHeap<T, K>
+where
+    K: Eq + Hash + Clone,
+    T: Ord + UniqueHeapItem<K> + Clone,
+{
+    fn new() -> Self {
+        Self {
+            heap: BinaryHeap::new(),
+            keys: HashSet::new(),
+        }
+    }
+
+    fn with_capacity(capacity: usize) -> Self {
+        Self {
+            heap: BinaryHeap::with_capacity(capacity),
+            keys: HashSet::new(),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct AsyncUniqueHeap<T, K>
 where
     K: Eq + Hash + Clone,
     T: Ord + UniqueHeapItem<K> + Clone,
 {
-    inner: Arc<RwLock<BinaryHeap<T>>>,
-    existing_keys: Arc<RwLock<HashSet<K>>>,
+    inner: Arc<RwLock<InnerHeap<T, K>>>,
     notify: Arc<Notify>,
 }
 
@@ -31,27 +60,23 @@ where
 {
     pub fn new() -> Self {
         Self {
-            inner: Arc::new(RwLock::new(BinaryHeap::new())),
-            existing_keys: Arc::new(RwLock::new(HashSet::new())),
+            inner: Arc::new(RwLock::new(InnerHeap::new())),
             notify: Arc::new(Notify::new()),
         }
     }
 
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
-            inner: Arc::new(RwLock::new(BinaryHeap::with_capacity(capacity))),
-            existing_keys: Arc::new(RwLock::new(HashSet::new())),
+            inner: Arc::new(RwLock::new(InnerHeap::with_capacity(capacity))),
             notify: Arc::new(Notify::new()),
         }
     }
 
     pub async fn push(&self, item: T) -> bool {
         let key = item.key();
-        let mut keys = self.existing_keys.write().await;
-        if keys.insert(key) {
-            drop(keys);
-            let mut heap = self.inner.write().await;
-            heap.push(item);
+        let mut inner = self.inner.write().await;
+        if inner.keys.insert(key) {
+            inner.heap.push(item);
             self.notify.notify_one();
             true
         } else {
@@ -60,11 +85,10 @@ where
     }
 
     pub async fn pop(&self) -> Option<T> {
-        let mut heap = self.inner.write().await;
-        if let Some(item) = heap.pop() {
+        let mut inner = self.inner.write().await;
+        if let Some(item) = inner.heap.pop() {
             let key = item.key();
-            let mut keys = self.existing_keys.write().await;
-            keys.remove(&key);
+            inner.keys.remove(&key);
             Some(item)
         } else {
             None
@@ -81,18 +105,18 @@ where
     }
 
     pub async fn peek(&self) -> Option<T> {
-        let heap = self.inner.read().await;
-        heap.peek().cloned()
+        let inner = self.inner.read().await;
+        inner.heap.peek().cloned()
     }
 
     pub async fn len(&self) -> usize {
-        let heap = self.inner.read().await;
-        heap.len()
+        let inner = self.inner.read().await;
+        inner.heap.len()
     }
 
     pub async fn is_empty(&self) -> bool {
-        let heap = self.inner.read().await;
-        heap.is_empty()
+        let inner = self.inner.read().await;
+        inner.heap.is_empty()
     }
 }
 
