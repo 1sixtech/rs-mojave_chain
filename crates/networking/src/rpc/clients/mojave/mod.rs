@@ -55,6 +55,7 @@ impl Client {
 
     /// Sends multiple RPC requests to a list of urls and returns
     /// the first response without waiting for others to finish.
+    #[allow(dead_code)]
     async fn send_requests(&self, request: RpcRequest) -> Result<RpcResponse, MojaveClientError> {
         let requests: Vec<Pin<Box<Fuse<_>>>> = self
             .inner
@@ -63,9 +64,9 @@ impl Client {
             .map(|url| Box::pin(self.send_request_to_url(url, &request).fuse()))
             .collect();
 
-        let (response, _) = select_ok(requests).await.map_err(|error| {
-            MojaveClientError::Custom(format!("All RPC calls failed: {}", error))
-        })?;
+        let (response, _) = select_ok(requests)
+            .await
+            .map_err(|error| MojaveClientError::Custom(format!("All RPC calls failed: {error}")))?;
         Ok(response)
     }
 
