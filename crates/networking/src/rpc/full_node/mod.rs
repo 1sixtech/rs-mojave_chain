@@ -5,7 +5,10 @@ pub mod types;
 use crate::rpc::{
     FILTER_DURATION, RpcHandler,
     clients::mojave::Client as MojaveClient,
-    full_node::{block::BroadcastBlockRequest, types::transaction::SendRawTransactionRequest},
+    full_node::{
+        block::BroadcastBlockRequest,
+        types::{ordered_block::OrderedBlock, transaction::SendRawTransactionRequest},
+    },
     utils::{RpcErr, RpcNamespace, RpcRequest, RpcRequestId, rpc_response},
 };
 use axum::{Json, Router, extract::State, http::StatusCode, routing::post};
@@ -16,9 +19,10 @@ use ethrex_p2p::{
     sync_manager::SyncManager,
     types::{Node, NodeRecord},
 };
-use ethrex_rpc::{GasTipEstimator, NodeData, RpcApiContext as L1Context};
+use ethrex_rpc::{EthClient, GasTipEstimator, NodeData, RpcApiContext as L1Context};
 use ethrex_storage::Store;
 use ethrex_storage_rollup::StoreRollup;
+use mojave_chain_utils::unique_heap::AsyncUniqueHeap;
 use serde::Deserialize;
 use serde_json::Value;
 use std::{
@@ -35,7 +39,9 @@ pub struct RpcApiContextFullNode {
     pub l1_context: L1Context,
     pub rollup_store: StoreRollup,
     pub mojave_client: MojaveClient,
+    pub eth_client: EthClient,
     pub blockchain: Arc<Blockchain>,
+    pub block_queue: AsyncUniqueHeap<OrderedBlock, u64>,
 }
 
 #[derive(Deserialize)]
@@ -59,8 +65,10 @@ pub async fn start_api(
     client_version: String,
     rollup_store: StoreRollup,
     mojave_client: MojaveClient,
+    eth_client: EthClient,
 ) -> Result<(), RpcErr> {
     let active_filters = Arc::new(Mutex::new(HashMap::new()));
+    let block_queue = AsyncUniqueHeap::new();
     let context = RpcApiContextFullNode {
         l1_context: L1Context {
             storage,
@@ -78,7 +86,9 @@ pub async fn start_api(
         },
         rollup_store,
         mojave_client,
+        eth_client,
         blockchain,
+        block_queue,
     };
 
     // Periodically clean up the active filters for the filters endpoints.
@@ -115,6 +125,16 @@ pub async fn start_api(
 
     let _ =
         tokio::try_join!(http_server).inspect_err(|e| info!("Error shutting down servers: {e:?}"));
+
+    tokio::task::spawn(async move {
+        loop {
+            let block = context.block_queue.pop_wait().await;
+            let added_block = context.blockchain.add_block(&block.0).await;
+            if let Err(added_block) = added_block {
+                tracing::error!(error= %added_block, "Failed to add block to blockchain");
+            }
+        }
+    });
 
     Ok(())
 }

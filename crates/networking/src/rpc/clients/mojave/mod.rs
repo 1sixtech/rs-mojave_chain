@@ -1,8 +1,12 @@
 use ethrex_common::{H256, types::Block};
+use futures::{
+    FutureExt,
+    future::{Fuse, select_ok},
+};
 use reqwest::Url;
 use serde::Deserialize;
 use serde_json::json;
-use std::sync::Arc;
+use std::{pin::Pin, sync::Arc};
 
 use crate::rpc::{
     clients::mojave::errors::{ForwardTransactionError, MojaveClientError},
@@ -47,6 +51,23 @@ impl Client {
                 urls,
             }),
         })
+    }
+
+    /// Sends multiple RPC requests to a list of urls and returns
+    /// the first response without waiting for others to finish.
+    #[allow(dead_code)]
+    async fn send_requests(&self, request: RpcRequest) -> Result<RpcResponse, MojaveClientError> {
+        let requests: Vec<Pin<Box<Fuse<_>>>> = self
+            .inner
+            .urls
+            .iter()
+            .map(|url| Box::pin(self.send_request_to_url(url, &request).fuse()))
+            .collect();
+
+        let (response, _) = select_ok(requests)
+            .await
+            .map_err(|error| MojaveClientError::Custom(format!("All RPC calls failed: {error}")))?;
+        Ok(response)
     }
 
     async fn send_request(&self, request: RpcRequest) -> Result<RpcResponse, MojaveClientError> {

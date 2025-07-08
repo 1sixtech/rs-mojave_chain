@@ -1,6 +1,11 @@
-use crate::rpc::{RpcHandler, full_node::RpcApiContextFullNode, utils::RpcErr};
+use crate::rpc::{
+    RpcHandler,
+    full_node::{RpcApiContextFullNode, types::ordered_block::OrderedBlock},
+    utils::RpcErr,
+};
 
-use ethrex_common::types::Block;
+use ethrex_common::types::{Block, BlockBody, Transaction};
+use ethrex_rpc::{clients::eth::BlockByNumber, types::block::RpcBlock};
 use serde_json::Value;
 
 pub struct BroadcastBlockRequest {
@@ -14,12 +19,47 @@ impl RpcHandler<RpcApiContextFullNode> for BroadcastBlockRequest {
     }
 
     async fn handle(&self, context: RpcApiContextFullNode) -> Result<Value, RpcErr> {
+        let latest_block_number = context.l1_context.storage.get_latest_block_number().await? + 1;
+        for block_number in latest_block_number..self.block.header.number {
+            let block = context
+                .eth_client
+                .get_block_by_number(BlockByNumber::Number(block_number))
+                .await?;
+            let block = rpc_block_to_block(block);
+
+            context.block_queue.push(OrderedBlock(block)).await;
+        }
+
         context
-            .blockchain
-            .add_block(&self.block)
-            .await
-            .map_err(RpcErr::BlockchainError)?;
+            .block_queue
+            .push(OrderedBlock(self.block.clone()))
+            .await;
         Ok(Value::Null)
+    }
+}
+
+fn rpc_block_to_block(rpc_block: RpcBlock) -> Block {
+    match rpc_block.body {
+        ethrex_rpc::types::block::BlockBodyWrapper::Full(full_block_body) => {
+            // transform RPCBlock to normal block
+            let transactions: Vec<Transaction> = full_block_body
+                .transactions
+                .iter()
+                .map(|b| b.tx.clone())
+                .collect();
+
+            Block::new(
+                rpc_block.header,
+                BlockBody {
+                    ommers: full_block_body.uncles,
+                    transactions,
+                    withdrawals: Some(full_block_body.withdrawals),
+                },
+            )
+        }
+        ethrex_rpc::types::block::BlockBodyWrapper::OnlyHashes(..) => {
+            unreachable!()
+        }
     }
 }
 
@@ -47,6 +87,7 @@ mod tests {
         Address, Bloom, Bytes, H256, U256,
         types::{Block, BlockBody, BlockHeader},
     };
+
     use serde_json::json;
 
     fn create_test_block() -> Block {
@@ -168,5 +209,55 @@ mod tests {
         let invalid_params = Some(vec![json!({"invalid": "block"})]);
         let result = BroadcastBlockRequest::parse(&invalid_params);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_rpc_block_to_block_with_minimal_json() {
+        let rpc_block_json = json!({
+            "hash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+            "size": "0x200",
+            "number": "0xa",
+            "gasLimit": "0x1c9c380",
+            "gasUsed": "0x5208",
+            "timestamp": "0x5f5e100",
+            "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "difficulty": "0x1",
+            "totalDifficulty": "0xa",
+            "nonce": "0x0",
+            "sha3Uncles": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+            "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "transactionsRoot": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+            "stateRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "receiptsRoot": "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
+            "miner": "0x0000000000000000000000000000000000000000",
+            "extraData": "0x",
+            "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "baseFeePerGas": "0x3b9aca00",
+            "transactions": [],
+            "uncles": [],
+            "withdrawals": []
+        });
+
+        let rpc_block_result: Result<RpcBlock, _> = serde_json::from_value(rpc_block_json);
+
+        match rpc_block_result {
+            Ok(rpc_block) => {
+                let result_block = rpc_block_to_block(rpc_block);
+
+                assert_eq!(result_block.header.number, 10u64); // 0xa = 10
+                assert_eq!(result_block.header.gas_limit, 30000000u64); // 0x1c9c380
+                assert_eq!(result_block.header.gas_used, 21000u64); // 0x5208
+                assert_eq!(result_block.header.base_fee_per_gas, Some(1000000000u64)); // 0x3b9aca00
+
+                assert_eq!(result_block.body.transactions.len(), 0);
+                assert_eq!(result_block.body.ommers.len(), 0);
+                assert_eq!(result_block.body.withdrawals, Some(vec![]));
+            }
+            Err(e) => {
+                panic!(
+                    "Failed to deserialize RpcBlock: {e}. The function rpc_block_to_block exists and compiles correctly.",
+                );
+            }
+        }
     }
 }

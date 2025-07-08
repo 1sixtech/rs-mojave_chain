@@ -31,9 +31,7 @@ pub trait RpcHandler<T>: Sized {
 
 #[cfg(test)]
 mod tests {
-    use crate::rpc::utils::test_utils::{
-        TEST_SEQUENCER_ADDR, start_test_api_full_node, start_test_api_sequencer,
-    };
+    use crate::rpc::utils::test_utils::{start_test_api_full_node, start_test_api_sequencer};
 
     use super::*;
 
@@ -49,7 +47,6 @@ mod tests {
         net::SocketAddr,
         panic,
         str::FromStr,
-        sync::LazyLock,
         time::{Duration, SystemTime, UNIX_EPOCH},
     };
 
