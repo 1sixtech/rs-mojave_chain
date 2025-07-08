@@ -55,8 +55,10 @@ impl Client {
 
     /// Sends multiple RPC requests to a list of urls and returns
     /// the first response without waiting for others to finish.
-    #[allow(dead_code)]
-    async fn send_requests(&self, request: RpcRequest) -> Result<RpcResponse, MojaveClientError> {
+    async fn send_request_race(
+        &self,
+        request: RpcRequest,
+    ) -> Result<RpcResponse, MojaveClientError> {
         let requests: Vec<Pin<Box<Fuse<_>>>> = self
             .inner
             .urls
@@ -70,6 +72,8 @@ impl Client {
         Ok(response)
     }
 
+    /// Sends the given RPC request to all configured URLs sequentially.
+    /// Returns the response from the last successful request, or the last error if all requests fail.
     async fn send_request(&self, request: RpcRequest) -> Result<RpcResponse, MojaveClientError> {
         let mut response = Err(MojaveClientError::Custom(
             "All rpc calls failed".to_string(),
@@ -129,7 +133,7 @@ impl Client {
             params: Some(vec![json!(block)]),
         };
 
-        match self.send_request(request).await {
+        match self.send_request_race(request).await {
             Ok(RpcResponse::Success(result)) => {
                 serde_json::from_value(result.result).map_err(MojaveClientError::from)
             }
