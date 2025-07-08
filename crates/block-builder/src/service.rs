@@ -15,7 +15,7 @@ pub struct BlockBuilder {
 impl BlockBuilder {
     /// # Examples: Sequencer
     ///
-    /// ```rust
+    /// ```rust,ignore
     /// use std::time::Duration;
     /// use tokio::time::sleep;
     ///

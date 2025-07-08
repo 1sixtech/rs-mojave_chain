@@ -78,3 +78,9 @@ doc:
 # Watch and rebuild documentation on changes
 doc-watch:
 	cargo watch -x "doc --no-deps"
+
+docker-build:
+	docker build -t mojave .
+
+docker-run:
+	docker run -p 8545:8545 mojave
