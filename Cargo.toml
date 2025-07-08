@@ -35,6 +35,7 @@ mojave-networking = { path = "crates/networking" }
 
 anyhow = { version = "1.0" }
 clap = { version = "4.5", features = ["derive"] }
+futures = "0.3"
 secp256k1 = { version = "0.29.1", default-features = false }
 k256 = { version = "0.13.3", features = ["ecdh"] }
 serde = { version = "1.0", default-features = false }
