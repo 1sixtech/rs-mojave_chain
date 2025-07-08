@@ -96,7 +96,7 @@ impl BlockBuilderContext {
         let payload = self.create_payload(&args)?;
 
         // Blockchain builds the payload from mempool txs and executes them
-        let payload_build_result = self.build_payload(payload, true).await?;
+        let payload_build_result = self.build_payload(payload).await?;
         info!(
             "Built payload for new block {}",
             payload_build_result.payload.header.number
@@ -143,65 +143,6 @@ impl BlockBuilderContext {
         //     METRICS_TX.set_transactions_per_second(tps);
         // );
         Ok(block)
-    }
-
-    pub(crate) async fn execute_block(&self, block: Block) -> Result<(), BlockBuilderError> {
-        let head_header = {
-            let current_block_number = self.store.get_latest_block_number().await?;
-            self.store
-                .get_block_header(current_block_number)?
-                .ok_or(BlockBuilderError::StorageDataIsNone)?
-        };
-
-        // Blockchain builds the payload and executes them
-        let payload_build_result = self.build_payload(block, false).await?;
-        info!(
-            "Built payload for new block {}",
-            payload_build_result.payload.header.number
-        );
-
-        // Blockchain stores block
-        let block = payload_build_result.payload;
-        let chain_config = self.store.get_chain_config()?;
-        validate_block(
-            &block,
-            &head_header,
-            &chain_config,
-            self.elasticity_multiplier,
-        )?;
-
-        let account_updates = payload_build_result.account_updates;
-
-        let execution_result = BlockExecutionResult {
-            receipts: payload_build_result.receipts,
-            requests: Vec::new(),
-        };
-
-        self.blockchain
-            .store_block(&block, execution_result, &account_updates)
-            .await?;
-        info!("Stored new block {:x}", block.hash());
-        // WARN: We're not storing the payload into the Store because there's no use to it by the L2 for now.
-
-        self.rollup_store
-            .store_account_updates_by_block_number(block.header.number, account_updates)
-            .await?;
-
-        // Make the new head be part of the canonical chain
-        apply_fork_choice(&self.store, block.hash(), block.hash(), block.hash()).await?;
-
-        // metrics!(
-        //     let _ = METRICS_BLOCKS
-        //     .set_block_number(block.header.number)
-        //     .inspect_err(|e| {
-        //         tracing::error!("Failed to set metric: block_number {}", e.to_string())
-        //     });
-        //     #[allow(clippy::as_conversions)]
-        //     let tps = block.body.transactions.len() as f64 / (state.block_time_ms as f64 / 1000_f64);
-        //     METRICS_TX.set_transactions_per_second(tps);
-        // );
-
-        Ok(())
     }
 
     /// Creates a new payload based on the payload arguments
@@ -276,11 +217,7 @@ impl BlockBuilderContext {
     /// L2 payload builder
     /// Completes the payload building process, return the block value
     /// Same as `blockchain::build_payload` without applying system operations and using a different `fill_transactions`
-    async fn build_payload(
-        &self,
-        payload: Block,
-        is_sequencer: bool,
-    ) -> Result<PayloadBuildResult, BlockBuilderError> {
+    async fn build_payload(&self, payload: Block) -> Result<PayloadBuildResult, BlockBuilderError> {
         let since = Instant::now();
         let gas_limit = payload.header.gas_limit;
 
@@ -292,11 +229,8 @@ impl BlockBuilderContext {
             BlockchainType::L2,
         )?;
 
-        if is_sequencer {
-            self.fill_transactions(&mut context).await?;
-            self.blockchain.extract_requests(&mut context)?;
-        }
-
+        self.fill_transactions(&mut context).await?;
+        self.blockchain.extract_requests(&mut context)?;
         self.blockchain.finalize_payload(&mut context).await?;
 
         let interval = Instant::now().duration_since(since).as_millis();

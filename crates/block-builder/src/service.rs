@@ -37,17 +37,6 @@ impl BlockBuilder {
             })?;
         receiver.await?
     }
-
-    pub async fn execute_block(&self, block: Block) -> Result<(), BlockBuilderError> {
-        let (sender, receiver) = oneshot::channel();
-        self.sender
-            .try_send(Message::ExecuteBlock(block, sender))
-            .map_err(|error| match error {
-                TrySendError::Full(_) => BlockBuilderError::Full,
-                TrySendError::Closed(_) => BlockBuilderError::Stopped,
-            })?;
-        receiver.await?
-    }
 }
 
 async fn handle_message(context: &BlockBuilderContext, message: Message) {
@@ -55,14 +44,10 @@ async fn handle_message(context: &BlockBuilderContext, message: Message) {
         Message::BuildBlock(sender) => {
             let _ = sender.send(context.build_block().await);
         }
-        Message::ExecuteBlock(block, sender) => {
-            let _ = sender.send(context.execute_block(block).await);
-        }
     }
 }
 
 #[allow(clippy::large_enum_variant)]
 enum Message {
     BuildBlock(oneshot::Sender<Result<Block, BlockBuilderError>>),
-    ExecuteBlock(Block, oneshot::Sender<Result<(), BlockBuilderError>>),
 }
