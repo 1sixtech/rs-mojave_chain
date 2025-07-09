@@ -59,6 +59,9 @@ fix flags="":
 	# cargo install taplo-cli --locked
 	taplo fmt
 
+upgrade-ethrex:
+	./cmd/update_ethrex_rev.sh
+
 # Upgrade any tooling
 upgrade:
 	# Update any patch versions
