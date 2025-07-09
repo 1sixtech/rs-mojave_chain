@@ -30,8 +30,9 @@ sed -i '' -E "s|(rev = \")[a-f0-9]{40}(\")|\1$LATEST_HASH\2|g" "$CARGO_FILE"
 echo "🔄 Updated all rev fields in Cargo.toml to latest commit hash."
 
 # Ask to run cargo update
-read -p "🚀 Run 'cargo update'? (y/n): " choice
+echo -n "🚀 Run 'cargo update'? (y/n): "
+read -r choice
 if [[ "$choice" == "y" ]]; then
-    cd "$ROOT_DIR"
+    cd "$ROOT_DIR" || exit 1
     cargo update
 fi
