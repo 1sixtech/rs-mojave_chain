@@ -25,7 +25,17 @@ cp "$CARGO_FILE" "$CARGO_FILE.bak"
 echo "📦 Backup created at Cargo.toml.bak"
 
 # Replace all rev fields with new hash
-sed -i '' -E "s|(rev = \")[a-f0-9]{40}(\")|\1$LATEST_HASH\2|g" "$CARGO_FILE"
+cross_sed() {
+    if sed --version 2>/dev/null | grep -q GNU; then
+        # GNU sed
+        sed -i "$@"
+    else
+        # BSD sed
+        sed -i '' "$@"
+    fi
+}
+
+cross_sed 's/\(git = "https:\/\/github\.com\/1sixtech\/ethrex".*rev = "\)[^"]*"/\1'"$LATEST_HASH"'"/g' "$CARGO_FILE"
 
 echo "🔄 Updated all rev fields in Cargo.toml to latest commit hash."
 
