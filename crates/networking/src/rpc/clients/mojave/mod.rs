@@ -1,14 +1,17 @@
+use ed25519_dalek::{Signature, SigningKey};
 use ethrex_common::{H256, types::Block};
 use futures::{
     FutureExt,
     future::{Fuse, select_ok},
 };
+use k256::ecdsa::signature::SignerMut;
 use reqwest::Url;
 use serde::Deserialize;
 use serde_json::json;
-use std::{pin::Pin, sync::Arc};
+use std::{env, pin::Pin, sync::Arc};
 
 use crate::rpc::{
+    SignedBlock,
     clients::mojave::errors::{ForwardTransactionError, MojaveClientError},
     utils::{RpcErrorResponse, RpcRequest, RpcRequestId, RpcSuccessResponse},
 };
@@ -24,6 +27,7 @@ struct ClientInner {
 #[derive(Clone, Debug)]
 pub struct Client {
     inner: Arc<ClientInner>,
+    signing_key: SigningKey,
 }
 
 #[derive(Deserialize, Debug)]
@@ -45,11 +49,21 @@ impl Client {
             })
             .collect::<Result<Vec<_>, _>>()?;
 
+        let secret = env::var("PRIVATE_KEY").map_err(|_| MojaveClientError::MissingSigningKey)?;
+
+        let private_key_bytes = hex::decode(secret).expect("Failed to decode private key from hex");
+        let private_key_array: [u8; 32] = private_key_bytes
+            .try_into()
+            .expect("invalid length for private key");
+
+        let signing_key = SigningKey::from_bytes(&private_key_array);
+
         Ok(Self {
             inner: Arc::new(ClientInner {
                 client: reqwest::Client::new(),
                 urls,
             }),
+            signing_key,
         })
     }
 
@@ -126,11 +140,20 @@ impl Client {
     }
 
     pub async fn send_broadcast_block(&self, block: &Block) -> Result<(), MojaveClientError> {
+        let hash = block.hash();
+        let mut signing_key_clone = self.signing_key.clone();
+        let signature: Signature = signing_key_clone.sign(hash.as_bytes());
+
+        let params = SignedBlock {
+            block: block.clone(),
+            signature: signature.to_bytes(),
+        };
+
         let request = RpcRequest {
             id: RpcRequestId::Number(1),
             jsonrpc: "2.0".to_string(),
             method: "mojave_sendBroadcastBlock".to_string(),
-            params: Some(vec![json!(block)]),
+            params: Some(vec![json!(params)]),
         };
 
         match self.send_request_race(request).await {
