@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use ethrex_blockchain::Blockchain;
 use ethrex_common::types::{BlobsBundle, Block};
-use ethrex_l2::sequencer::proof_coordinator::{ProofData, ProverInputData};
 use ethrex_l2_common::prover::BatchProof;
 use ethrex_storage::Store;
 use ethrex_storage_rollup::StoreRollup;
@@ -17,8 +16,6 @@ mod errors;
 pub struct ProofCoordinator {
     /// Come from the block builder
     proof_data_receiver: Receiver<u64>,
-    /// Come from the block builder
-    proof_sender: Sender<(BatchProof, u64)>,
     /// Send to the prover
     prover_data_sender: Sender<ProverData>,
     /// Receive from the prover
@@ -28,13 +25,11 @@ pub struct ProofCoordinator {
 impl ProofCoordinator {
     pub fn new(
         proof_data_receiver: Receiver<u64>,
-        proof_sender: Sender<(BatchProof, u64)>,
         prover_data_sender: Sender<ProverData>,
         proof_receiver: Receiver<(BatchProof, u64)>,
     ) -> Self {
         Self {
             proof_data_receiver,
-            proof_sender,
             prover_data_sender,
             proof_receiver,
         }
@@ -59,15 +54,12 @@ impl ProofCoordinator {
             Err(e) => return Err(ProofCoordinatorError::ProverDataSendError(e)),
         };
 
-        let (proof, _) = match self.proof_receiver.recv().await {
+        let (proof, batch_number) = match self.proof_receiver.recv().await {
             Some((proof, data)) => (proof, data),
             None => return Ok(()),
         };
 
-        match self.proof_sender.send((proof, batch_number)).await {
-            Ok(_) => {}
-            Err(e) => return Err(ProofCoordinatorError::ProofSendError(e)),
-        };
+        context.store_proof(proof, batch_number).await?;
 
         Ok(())
     }

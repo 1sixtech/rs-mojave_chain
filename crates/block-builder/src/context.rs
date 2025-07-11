@@ -14,14 +14,13 @@ use ethrex_common::{
     Address, Bloom, Bytes, H256, U256,
     constants::{DEFAULT_OMMERS_HASH, DEFAULT_REQUESTS_HASH},
     types::{
-        BlobsBundle, Block, BlockBody, BlockHeader, Receipt, SAFE_BYTES_PER_BLOB, Transaction,
+        Block, BlockBody, BlockHeader, Receipt, SAFE_BYTES_PER_BLOB, Transaction,
         calc_excess_blob_gas, calculate_base_fee_per_gas, compute_receipts_root,
         compute_transactions_root, compute_withdrawals_root,
     },
 };
 use ethrex_l2_common::{
     l1_messages::get_block_l1_messages,
-    prover::BatchProof,
     state_diff::{
         AccountStateDiff, BLOCK_HEADER_LEN, DEPOSITS_LOG_LEN, L1MESSAGE_LOG_LEN,
         SIMPLE_TX_STATE_DIFF_SIZE, StateDiffError,
@@ -36,7 +35,6 @@ use std::{
     sync::Arc,
     time::{Instant, SystemTime},
 };
-use tokio::sync::mpsc::Receiver;
 use tracing::{debug, error, info};
 
 #[derive(Clone)]

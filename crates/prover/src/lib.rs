@@ -3,6 +3,7 @@ use ethrex_prover_lib::{prove, to_batch_proof};
 use tokio::sync::mpsc::{Receiver, Sender};
 use zkvm_interface::io::ProgramInput;
 
+#[allow(unused)]
 const QUEUE_SIZE: usize = 100;
 
 pub struct ProverData {
@@ -10,7 +11,8 @@ pub struct ProverData {
     pub input: ProgramInput,
 }
 
-struct Prover {
+#[allow(unused)]
+pub struct Prover {
     aligned_mode: bool,
     new_input_receiver: Receiver<ProverData>,
     proof_sender: Sender<(BatchProof, u64)>,
@@ -19,14 +21,15 @@ struct Prover {
 impl Prover {
     /// Creates a new instance of the Prover.
     ///
-    /// ```rust
-    /// use mojave-proover::Prover;
+    /// ```rust,ignore
+    /// use mojave_prover::Prover;
     ///
-    /// let prover = Prover::new(true);
+    /// let (mut prover, _, _) = Prover::new(true);
     /// tokio::spawn(async move {
     ///     prover.start().await;
     /// });
     /// ```
+    #[allow(unused)]
     pub fn new(aligned_mode: bool) -> (Self, Sender<ProverData>, Receiver<(BatchProof, u64)>) {
         let (new_input_sender, new_input_receiver) = tokio::sync::mpsc::channel(QUEUE_SIZE);
         let (proof_sender, proof_receiver) = tokio::sync::mpsc::channel(QUEUE_SIZE);
@@ -42,6 +45,7 @@ impl Prover {
         )
     }
 
+    #[allow(unused)]
     pub async fn start(&mut self) {
         loop {
             if let Some(data) = self.new_input_receiver.recv().await {

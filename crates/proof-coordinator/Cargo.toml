@@ -14,6 +14,6 @@ ethrex-common = { workspace = true, features = ["c-kzg"] }
 ethrex-storage = { workspace = true }
 ethrex-storage-rollup = { workspace = true }
 ethrex-blockchain = { workspace = true }
-zkvm-interface = { workspace = true }
+zkvm_interface = { workspace = true }
 
 mojave-prover = { workspace = true }
